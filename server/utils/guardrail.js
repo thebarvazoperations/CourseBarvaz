@@ -1,12 +1,16 @@
 /**
  * Guardrail — שכבת ניטרליות כפולה:
  * 1. regex מהיר על מילות מפתח סובייקטיביות
- * 2. קריאה שנייה ל-Gemini עם רשימת בדיקה מפורטת
+ * 2. קריאה שנייה ל-AI (כל ספק זמין) עם רשימת בדיקה מפורטת
  *
  * עיקרון: אם *אחת* מהשכבות מוצאת בעיה — הטקסט נחשב לא בטוח.
  */
 
-const GUARDRAIL_PROMPT = `אתה בוחן ניטרליות לכלי מידע פיננסי. בדוק את הטקסט הבא לפי הקריטריונים:
+const { provider } = require("./ai-provider");
+
+const GUARDRAIL_SYSTEM = "אתה בוחן ניטרליות לכלי מידע פיננסי. החזר JSON בלבד.";
+
+const GUARDRAIL_PROMPT = `בדוק את הטקסט הבא לפי הקריטריונים:
 
 BIAS_TYPES:
 1. המלצה אישית — ביטויים כמו "כדאי לך", "עדיף עבורך", "מתאים לך", "אני ממליץ", "הייתי בוחר", "הבחירה הטובה"
@@ -29,7 +33,7 @@ BIAS_TYPES:
 {{TEXT}}
 """`;
 
-// רשימה מקיפה של ביטויים אסורים (Hebrew + mixed)
+// רשימה מקיפה של ביטויים אסורים
 const FORBIDDEN_PATTERNS = [
   /כדאי\s+לך/i,
   /עדיף\s+(?:לך|עבורך|שתבחר)/i,
@@ -42,7 +46,7 @@ const FORBIDDEN_PATTERNS = [
   /לכן\s+(?:בחר|קח|פנה)/i,
   /ברור\s+ש/i,
   /הפתרון\s+(?:הוא|הטוב)\s+/i,
-  /תחסוך\s+(?:הרבה|כסף)/i, // לשון ודאית (לא "עשוי לחסוך")
+  /תחסוך\s+(?:הרבה|כסף)/i,
 ];
 
 function localCheck(text) {
@@ -53,24 +57,20 @@ function localCheck(text) {
 }
 
 /**
- * @param {object|null} model מודל Gemini מאותחל (null = demo)
  * @param {string} text הטיוטה לבדיקה
  * @returns {{ safe: boolean, violations: string[], rewrite: string|null }}
  */
-async function runGuardrail(model, text) {
+async function runGuardrail(text) {
   const local = localCheck(text);
 
-  if (!model) return local;
+  if (!provider) return local;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: GUARDRAIL_PROMPT.replace("{{TEXT}}", text) }] }],
-    });
-    let raw = result.response.text().trim()
-      .replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-    const parsed = JSON.parse(raw);
+    const userPrompt = GUARDRAIL_PROMPT.replace("{{TEXT}}", text);
+    const raw = await provider.generate(GUARDRAIL_SYSTEM, userPrompt);
+    const cleaned = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    const parsed = JSON.parse(cleaned);
 
-    // כל הפרה — גם מקומית, גם מה-AI — מדליקה אדום
     const combinedViolations = [...(local.violations || []), ...(parsed.violations || [])];
     if (!local.safe || !parsed.safe) {
       return {
@@ -81,7 +81,7 @@ async function runGuardrail(model, text) {
     }
     return { safe: true, violations: [], rewrite: null };
   } catch (err) {
-    console.warn("[guardrail] קריאת Gemini נכשלה, נופל לבדיקה מקומית:", err.message);
+    console.warn("[guardrail] AI check failed, falling back to local:", err.message);
     return local;
   }
 }

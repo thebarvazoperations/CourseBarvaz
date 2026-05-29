@@ -1,6 +1,7 @@
 /**
- * אינטגרציה עם Google Gemini (gemini-2.0-flash).
- * Gemini מייצר רק נרטיב — כל המספרים מחושבים דטרמיניסטית ב-finance.js.
+ * מנוע נרטיב AI למשכנתא.
+ * תומך ב-Gemini / Claude / OpenAI דרך ai-provider.js.
+ * Gemini/Claude/OpenAI מייצרים רק נרטיב — כל המספרים מחושבים דטרמיניסטית ב-finance.js.
  *
  * שכבות ניטרליות:
  *  1. SYSTEM_PROMPT — כללי ה"מותר/אסור" + תבנית ה-Reframe
@@ -8,8 +9,8 @@
  *  3. runGuardrail — קריאה שנייה שבוחנת ומחדשת
  */
 
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { runGuardrail } = require("./guardrail");
+const { provider } = require("./ai-provider");
 
 // ===== SYSTEM PROMPT — שכבה 1 =====
 const SYSTEM_PROMPT = `אתה "כלי המשכנתא" — כלי מידע ניטרלי לשוק המשכנתאות הישראלי.
@@ -50,19 +51,6 @@ const CHAT_SYSTEM_PROMPT = `אתה "כלי המשכנתא" — עוזר מידע
 3. מותר: נתונים, הסברים, שיקולים לכאן ולכאן, שאלות לבנק.
 4. כל "כדאי" → "שיקול לטובת... שיקול נגד..."
 5. סיים תמיד: "זה לא יועץ משכנתאות. זה יותר טוב."`;
-
-let genAI = null;
-let reportModel = null;
-let guardModel = null;
-
-if (process.env.GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  reportModel = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
-    systemInstruction: SYSTEM_PROMPT,
-  });
-  guardModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-}
 
 // ===== PROMPT לדוח — שכבה 2: מבנה JSON מחייב =====
 function buildPrompt(profile, reportData) {
@@ -145,15 +133,12 @@ function fallbackNarrative(profile, reportData) {
 
 // ===== generateNarrative — שלוש שכבות =====
 async function generateNarrative(profile, reportData) {
-  if (!reportModel) {
+  if (!provider) {
     return { narrative: fallbackNarrative(profile, reportData), demo: true };
   }
 
   const prompt = buildPrompt(profile, reportData);
-  const result = await reportModel.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-  });
-  const draft = result.response.text();
+  const draft = await provider.generate(SYSTEM_PROMPT, prompt);
 
   let narrative;
   try {
@@ -174,20 +159,17 @@ async function generateNarrative(profile, reportData) {
     ...(narrative.questions || []),
   ].join("\n");
 
-  const check = await runGuardrail(guardModel, combinedText);
+  const check = await runGuardrail(combinedText);
   if (!check.safe) {
     narrative.guardrailApplied = true;
     narrative.guardrailViolations = check.violations;
     if (check.rewrite) {
-      // מחליפים רק את החלק הסובייקטיבי ביותר (mixesNote)
       narrative.mixesNote = check.rewrite;
     } else {
-      // fallback: מחליפים לנוסח ברירת מחדל בטוח
       narrative.mixesNote = fallbackNarrative(profile, reportData).mixesNote;
     }
   }
 
-  // מוודאים שה-disclaimer תמיד כולל את הסלוגן
   narrative.disclaimer =
     "זה לא יועץ משכנתאות. זה יותר טוב. | המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון.";
 
