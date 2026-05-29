@@ -224,6 +224,109 @@ function computeRatios(profile, balancedMonthly) {
   };
 }
 
+/**
+ * תווית מילולית לדירוג אשראי (0-100).
+ */
+function creditTier(score) {
+  if (score >= 85) return { label: "מצוין", color: "#10b981" };
+  if (score >= 70) return { label: "טוב", color: "#6366f1" };
+  if (score >= 50) return { label: "בינוני", color: "#f59e0b" };
+  return { label: "חלש", color: "#ef4444" };
+}
+
+/**
+ * מנוע "הריבית שמגיע לך".
+ * לוקח דירוג אשראי, LTV, DTI ונכסים נזילים, ומחשב:
+ *  - dealsRate: הריבית שהבנק *אמור* לתת לפרופיל כזה (היעד הריאלי)
+ *  - bankOpening: הריבית שהבנק יפתח בה בדרך כלל (גבוהה יותר)
+ *  - gapBps: הפער בנקודות בסיס שצריך "להילחם" עליו
+ *  - leverage: רשימת מנופים — כל גורם, ההשפעה שלו, ומה להתעקש עליו
+ *
+ * המתודולוגיה: מתחילים מריבית בסיס (ה-blendedRate המאוזן) ומיישמים
+ * התאמות (בנקודות בסיס, bps) לכל גורם פרופיל. הריבית שמגיע לך = בסיס + סך ההתאמות.
+ */
+function computeRateOffer(profile, balancedRate, ratios) {
+  const base = balancedRate; // נקודת המוצא הניטרלית
+  const adjustments = [];
+
+  // --- דירוג אשראי --- (טווח השפעה כ-0.6%)
+  const credit = creditTier(profile.creditScore);
+  // ככל שהדירוג גבוה יותר, הריבית נמוכה יותר. 85+ => -0.30%, 50- => +0.30%
+  const creditBps = Math.round((70 - profile.creditScore) * 0.6); // לדוגמה score=100 => -18bps
+  adjustments.push({
+    factor: "דירוג אשראי",
+    detail: `${credit.label} (${profile.creditScore}/100)`,
+    bps: creditBps,
+    insist:
+      profile.creditScore >= 70
+        ? "הצג דו\"ח נתוני אשראי עדכני — דירוג גבוה הוא קלף מיקוח חזק להורדת ריבית."
+        : "שפר דירוג לפני הגשה: סגור מסגרות אשראי לא מנוצלות והסר חריגות.",
+    positive: creditBps <= 0,
+  });
+
+  // --- LTV (מינוף) --- (ככל שנמוך יותר, סיכון נמוך => ריבית נמוכה)
+  const ltvBps = Math.round((ratios.ltv - 60) * 0.8); // LTV=60 => 0, LTV=75 => +12bps
+  adjustments.push({
+    factor: "מינוף (LTV)",
+    detail: `${ratios.ltv}% משווי הנכס`,
+    bps: ltvBps,
+    insist:
+      ratios.ltv > 60
+        ? "הוספת הון עצמי שתוריד את ה-LTV מתחת ל-60% יכולה להוריד את הריבית משמעותית."
+        : "מינוף נמוך — דרוש את הריבית הנמוכה בטווח. אתה לקוח בסיכון נמוך לבנק.",
+    positive: ltvBps <= 0,
+  });
+
+  // --- DTI (יחס החזר) ---
+  const dtiBps = Math.round((ratios.dti - 30) * 0.5); // DTI=30 => 0
+  adjustments.push({
+    factor: "יחס החזר (DTI)",
+    detail: `${ratios.dti}% מההכנסה`,
+    bps: dtiBps,
+    insist:
+      ratios.dti > 35
+        ? "צמצם הלוואות קיימות או הארך תקופה — יחס החזר נמוך מאותת על לווה יציב."
+        : "יחס החזר בריא — נקודת חוזק במשא ומתן.",
+    positive: dtiBps <= 0,
+  });
+
+  // --- נכסים נזילים --- (כרית ביטחון מורידה סיכון)
+  const assetMonths =
+    profile.monthlyIncome > 0 ? profile.liquidAssets / profile.monthlyIncome : 0;
+  // 6 חודשי הכנסה ומעלה => עד -15bps
+  const assetBps = assetMonths >= 6 ? -15 : assetMonths >= 3 ? -8 : 0;
+  adjustments.push({
+    factor: "נכסים נזילים",
+    detail:
+      assetMonths >= 1
+        ? `כרית של ~${Math.round(assetMonths)} חודשי הכנסה`
+        : "כרית ביטחון נמוכה",
+    bps: assetBps,
+    insist:
+      assetBps < 0
+        ? "הצג חסכונות/נכסים נזילים — הם מוכיחים יציבות ומפחיתים את הסיכון בעיני הבנק."
+        : "בניית כרית ביטחון של 3-6 חודשי הכנסה תחזק את עמדת המיקוח.",
+    positive: assetBps <= 0,
+  });
+
+  const totalBps = adjustments.reduce((s, a) => s + a.bps, 0);
+  const deservedRate = Math.round((base + totalBps / 100) * 100) / 100;
+  const bankOpening = Math.round((deservedRate + 0.5) * 100) / 100; // הבנק תמיד פותח גבוה יותר
+  const gapBps = Math.round((bankOpening - deservedRate) * 100);
+
+  return {
+    base: Math.round(base * 100) / 100,
+    deservedRate,
+    bankOpening,
+    gapBps,
+    creditTier: credit,
+    adjustments,
+    // חיסכון חודשי פוטנציאלי אם תשיג את הריבית שמגיע לך במקום הפתיחה
+    note:
+      "הריבית שמגיע לך מחושבת מהפרופיל שלך. הפער מול הצעת הפתיחה הוא מה שצריך להשיג במשא ומתן.",
+  };
+}
+
 module.exports = {
   monthlyPayment,
   totalCost,
@@ -231,6 +334,8 @@ module.exports = {
   buildReportData,
   buildAmortizationSchedule,
   computeRatios,
+  computeRateOffer,
+  creditTier,
   RATE_ASSUMPTIONS,
   MIX_PROFILES,
 };

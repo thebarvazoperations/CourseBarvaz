@@ -18,6 +18,8 @@ const initialState = {
   age: "",
   termYears: 25,
   riskTolerance: 50,
+  creditScore: 70,
+  liquidAssets: "",
 };
 
 function ProgressBar({ step }) {
@@ -109,6 +111,15 @@ export default function Form() {
       : data.riskTolerance < 66
       ? "איזון בין ודאות לעלות"
       : "מוכן לסיכון בשביל ריבית נמוכה";
+
+  const creditLabel =
+    data.creditScore >= 85
+      ? "מצוין"
+      : data.creditScore >= 70
+      ? "טוב"
+      : data.creditScore >= 50
+      ? "בינוני"
+      : "חלש";
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -225,6 +236,33 @@ export default function Form() {
                 <span>10</span>
               </div>
             </div>
+            <div>
+              <label className="label">
+                דירוג אשראי:{" "}
+                <span className="text-primary font-700">{creditLabel}</span>
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={data.creditScore}
+                onChange={(e) => set("creditScore")(Number(e.target.value))}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted">
+                <span>חלש</span>
+                <span>מצוין</span>
+              </div>
+              <p className="mt-1 text-xs text-muted">
+                לא בטוח? אפשר לבדוק חינם בדו"ח נתוני אשראי של בנק ישראל.
+              </p>
+            </div>
+            <MoneyInput
+              label="נכסים נזילים / חסכונות (מעבר להון העצמי)"
+              value={data.liquidAssets}
+              onChange={set("liquidAssets")}
+              placeholder="100,000"
+            />
           </div>
         )}
 

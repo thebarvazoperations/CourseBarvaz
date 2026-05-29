@@ -8,7 +8,7 @@ const router = express.Router();
 
 const db = require("../utils/db");
 const { anonymizeProfile } = require("../utils/anonymize");
-const { buildReportData, buildAmortizationSchedule, computeRatios } = require("../utils/finance");
+const { buildReportData, buildAmortizationSchedule, computeRatios, computeRateOffer } = require("../utils/finance");
 const { generateNarrative } = require("../utils/gemini");
 
 const RAW_TTL_MS = 24 * 60 * 60 * 1000; // מחיקת נתונים גולמיים תוך 24 שעות
@@ -74,6 +74,7 @@ router.post("/generate/:analysisId", async (req, res) => {
     const ratios = computeRatios(record.profile, balanced.monthly);
     reportData.amortization = amortization;
     reportData.ratios = ratios;
+    reportData.rateOffer = computeRateOffer(record.profile, balanced.blendedRate, ratios);
 
     const { narrative, demo } = await generateNarrative(record.profile, reportData);
 
@@ -134,7 +135,9 @@ router.post("/quick", async (req, res) => {
       profile.termYears || 25
     );
     reportData.amortization = amortization;
-    reportData.ratios = computeRatios(profile, balanced.monthly);
+    const ratios = computeRatios(profile, balanced.monthly);
+    reportData.ratios = ratios;
+    reportData.rateOffer = computeRateOffer(profile, balanced.blendedRate, ratios);
 
     const { narrative, demo } = await generateNarrative(profile, reportData);
     const report = { data: reportData, narrative, demo, generatedAt: Date.now() };

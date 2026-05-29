@@ -22,6 +22,10 @@ function anonymizeProfile(data = {}) {
     termYears: Number(data.termYears) || 25,
     // 0 = ודאות מקסימלית, 100 = מוכן לסיכון בשביל ריבית נמוכה
     riskTolerance: Math.min(100, Math.max(0, Number(data.riskTolerance) || 50)),
+    // דירוג אשראי: 0-100 (סקאלה מנורמלת. 100 = מצוין)
+    creditScore: Math.min(100, Math.max(0, Number(data.creditScore) || 70)),
+    // נכסים נזילים / חסכונות נוספים (₪) — מעבר להון העצמי
+    liquidAssets: Number(data.liquidAssets) || 0,
   };
 }
 

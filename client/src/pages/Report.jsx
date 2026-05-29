@@ -25,6 +25,7 @@ import MixTable from "../components/MixTable.jsx";
 import SensitivityChart from "../components/SensitivityChart.jsx";
 import AmortizationChart from "../components/AmortizationChart.jsx";
 import CostCompareChart from "../components/CostCompareChart.jsx";
+import RateOffer from "../components/RateOffer.jsx";
 import ChatWidget from "../components/ChatWidget.jsx";
 
 // ---- Primitive components ----
@@ -267,7 +268,7 @@ export default function Report() {
   }
 
   const { data, narrative } = report;
-  const { capacity, summary, mixes, sensitivity, benchmark, refinance, amortization, ratios } = data;
+  const { capacity, summary, mixes, sensitivity, benchmark, refinance, amortization, ratios, rateOffer } = data;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 pb-32">
@@ -398,6 +399,19 @@ export default function Report() {
         <Section id="benchmark" title="Benchmark ריבית" icon={Target} note={narrative?.benchmarkNote}>
           <BenchmarkBar benchmark={benchmark} />
         </Section>
+
+        {/* ---- הריבית שמגיע לך ---- */}
+        {rateOffer && (
+          <Section
+            id="rate-offer"
+            title="הריבית שמגיע לך"
+            icon={Target}
+            note="חישוב מותאם אישית לפי דירוג האשראי, המינוף, יחס ההחזר והנכסים שלך — והמנופים שצריך להתעקש עליהם מול הבנק."
+            defaultOpen
+          >
+            <RateOffer rateOffer={rateOffer} />
+          </Section>
+        )}
 
         {/* ---- רפייננס ---- */}
         {refinance && (
