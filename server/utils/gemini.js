@@ -1,5 +1,5 @@
 /**
- * אינטגרציה עם Google Gemini (gemini-1.5-flash).
+ * אינטגרציה עם Google Gemini (gemini-2.0-flash).
  * Gemini מייצר רק נרטיב — כל המספרים מחושבים דטרמיניסטית ב-finance.js.
  *
  * שכבות ניטרליות:
@@ -58,10 +58,10 @@ let guardModel = null;
 if (process.env.GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   reportModel = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.0-flash",
     systemInstruction: SYSTEM_PROMPT,
   });
-  guardModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  guardModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 }
 
 // ===== PROMPT לדוח — שכבה 2: מבנה JSON מחייב =====
