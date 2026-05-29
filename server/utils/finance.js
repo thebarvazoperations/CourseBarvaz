@@ -89,6 +89,12 @@ function buildReportData(profile) {
 
   // --- חלק 2: שלושה תמהילים ---
   const mixes = MIX_PROFILES.map((m) => {
+    const primeShare = m.primePct / 100;
+    const fixedShare = 1 - primeShare;
+    const primePrincipal = principal * primeShare;
+    const fixedPrincipal = principal * fixedShare;
+    const primeMonthly = monthlyPayment(primePrincipal, RATE_ASSUMPTIONS.prime, years);
+    const fixedMonthly = monthlyPayment(fixedPrincipal, RATE_ASSUMPTIONS.fixedUnlinked, years);
     const base = computeMix({ principal, years, primePct: m.primePct });
     return {
       ...m,
@@ -98,6 +104,10 @@ function buildReportData(profile) {
           ? Math.round((base.monthly / monthlyIncome) * 1000) / 10
           : 0,
       affordable: base.monthly <= availableForMortgage,
+      tracks: [
+        { name: "פריים", amount: Math.round(primePrincipal), rate: RATE_ASSUMPTIONS.prime, monthly: Math.round(primeMonthly) },
+        { name: 'קל"צ', amount: Math.round(fixedPrincipal), rate: RATE_ASSUMPTIONS.fixedUnlinked, monthly: Math.round(fixedMonthly) },
+      ],
     };
   });
 
