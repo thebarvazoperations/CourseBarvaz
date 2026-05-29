@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Home, RefreshCw, Loader2 } from "lucide-react";
 import { api } from "../lib/api.js";
+// הדוח מופק ישירות — ללא שלב תשלום
 import { formatInputLive, parseNumberInput, formatCurrency } from "../lib/format.js";
 
 const STEPS = ["פרטי המשכנתא", "פרופיל פיננסי", "העדפות"];
@@ -94,8 +95,8 @@ export default function Form() {
     setSubmitting(true);
     setError("");
     try {
-      const { analysisId } = await api.createAnalysis(data);
-      navigate(`/payment/${analysisId}`);
+      const { analysisId } = await api.quickAnalysis(data);
+      navigate(`/report/${analysisId}`);
     } catch (e) {
       setError(e.message);
       setSubmitting(false);
@@ -302,7 +303,7 @@ export default function Form() {
                 </>
               ) : (
                 <>
-                  המשך לתשלום <ArrowLeft size={18} />
+                  הפק דוח <ArrowLeft size={18} />
                 </>
               )}
             </button>

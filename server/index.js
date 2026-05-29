@@ -11,6 +11,7 @@ const rateLimit = require("express-rate-limit");
 
 const { router: analyzeRouter, purgeOldRawData } = require("./routes/analyze");
 const { router: paymentRouter, webhookHandler } = require("./routes/payment");
+const chatRouter = require("./routes/chat");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -38,6 +39,7 @@ app.use("/api/analyze", apiLimiter);
 // --- Routes ---
 app.use("/api/analyze", analyzeRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/chat", chatRouter);
 
 app.get("/api/health", (req, res) => {
   res.json({

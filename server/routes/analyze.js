@@ -8,7 +8,7 @@ const router = express.Router();
 
 const db = require("../utils/db");
 const { anonymizeProfile } = require("../utils/anonymize");
-const { buildReportData } = require("../utils/finance");
+const { buildReportData, buildAmortizationSchedule, computeRatios } = require("../utils/finance");
 const { generateNarrative } = require("../utils/gemini");
 
 const RAW_TTL_MS = 24 * 60 * 60 * 1000; // מחיקת נתונים גולמיים תוך 24 שעות
@@ -63,6 +63,18 @@ router.post("/generate/:analysisId", async (req, res) => {
     }
 
     const reportData = buildReportData(record.profile);
+
+    // לוח סילוקין שנתי + יחסים פיננסיים (מבוסס תמהיל מאוזן)
+    const balanced = reportData.mixes.find((m) => m.key === "balanced");
+    const amortization = buildAmortizationSchedule(
+      record.profile.loanAmount,
+      balanced.blendedRate,
+      record.profile.termYears || 25
+    );
+    const ratios = computeRatios(record.profile, balanced.monthly);
+    reportData.amortization = amortization;
+    reportData.ratios = ratios;
+
     const { narrative, demo } = await generateNarrative(record.profile, reportData);
 
     const report = { data: reportData, narrative, demo, generatedAt: Date.now() };
@@ -89,6 +101,50 @@ router.get("/report/:analysisId", async (req, res) => {
   } catch (err) {
     console.error("[analyze] שגיאה בשליפה:", err.message);
     res.status(500).json({ error: "שגיאה בשליפת הדוח" });
+  }
+});
+
+/**
+ * quick — יצירה + סימון כשולם + הפקת דוח בקריאה אחת (ללא תשלום).
+ * משמש כשמדלגים על flow התשלום.
+ */
+router.post("/quick", async (req, res) => {
+  try {
+    const profile = anonymizeProfile(req.body);
+    if (!profile.loanAmount || !profile.monthlyIncome) {
+      return res.status(400).json({ error: "חסרים נתונים חיוניים" });
+    }
+    const analysisId = require("crypto").randomUUID();
+    const record = {
+      id: analysisId,
+      profile,
+      paid: true,
+      report: null,
+      createdAt: Date.now(),
+      rawPurgeAt: Date.now() + RAW_TTL_MS,
+    };
+    await db.set(`analysis:${analysisId}`, record);
+
+    // הפקת הדוח מיד
+    const reportData = buildReportData(profile);
+    const balanced = reportData.mixes.find((m) => m.key === "balanced");
+    const amortization = buildAmortizationSchedule(
+      profile.loanAmount,
+      balanced.blendedRate,
+      profile.termYears || 25
+    );
+    reportData.amortization = amortization;
+    reportData.ratios = computeRatios(profile, balanced.monthly);
+
+    const { narrative, demo } = await generateNarrative(profile, reportData);
+    const report = { data: reportData, narrative, demo, generatedAt: Date.now() };
+    record.report = report;
+    await db.set(`analysis:${analysisId}`, record);
+
+    res.json({ analysisId, report });
+  } catch (err) {
+    console.error("[analyze/quick] שגיאה:", err.message);
+    res.status(500).json({ error: "שגיאה בהפקת הדוח. נסה שוב." });
   }
 });
 

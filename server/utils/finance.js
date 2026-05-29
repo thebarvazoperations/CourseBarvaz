@@ -167,11 +167,70 @@ function buildReportData(profile) {
   };
 }
 
+// buildAmortizationSchedule and computeRatios defined below
+
+/**
+ * לוח סילוקין שנתי — מחזיר snapshot לכל שנה:
+ * {year, principalPaid, interestPaid, balance, cumulativeInterest}
+ */
+function buildAmortizationSchedule(principal, annualRatePct, years) {
+  const n = years * 12;
+  const r = annualRatePct / 100 / 12;
+  const payment = r === 0 ? principal / n : (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+
+  const schedule = [];
+  let balance = principal;
+  let cumulativeInterest = 0;
+
+  for (let year = 1; year <= years; year++) {
+    let yearlyPrincipal = 0;
+    let yearlyInterest = 0;
+    for (let m = 0; m < 12; m++) {
+      const interestPayment = balance * r;
+      const principalPayment = payment - interestPayment;
+      yearlyInterest += interestPayment;
+      yearlyPrincipal += principalPayment;
+      balance = Math.max(0, balance - principalPayment);
+    }
+    cumulativeInterest += yearlyInterest;
+    schedule.push({
+      year,
+      principalPaid: Math.round(yearlyPrincipal),
+      interestPaid: Math.round(yearlyInterest),
+      balance: Math.round(balance),
+      cumulativeInterest: Math.round(cumulativeInterest),
+    });
+  }
+  return schedule;
+}
+
+/**
+ * LTV ו-DTI — יחסים פיננסיים מרכזיים
+ */
+function computeRatios(profile, balancedMonthly) {
+  const propertyValue = profile.loanAmount + profile.equity;
+  const ltv = propertyValue > 0 ? Math.round((profile.loanAmount / propertyValue) * 1000) / 10 : 0;
+  const dti = profile.monthlyIncome > 0
+    ? Math.round(((balancedMonthly + profile.existingLoans) / profile.monthlyIncome) * 1000) / 10
+    : 0;
+  const maxLTV = 75; // הגבלת בנק ישראל למשפחה ראשונה
+  return {
+    ltv,
+    dti,
+    ltvOk: ltv <= maxLTV,
+    dtiOk: dti <= 40,
+    propertyValue: Math.round(propertyValue),
+    maxLTV,
+  };
+}
+
 module.exports = {
   monthlyPayment,
   totalCost,
   computeMix,
   buildReportData,
+  buildAmortizationSchedule,
+  computeRatios,
   RATE_ASSUMPTIONS,
   MIX_PROFILES,
 };

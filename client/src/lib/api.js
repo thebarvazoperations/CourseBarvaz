@@ -15,6 +15,10 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  // יצירה + הפקה בקריאה אחת (ללא תשלום)
+  quickAnalysis: (profile) =>
+    request("/analyze/quick", { method: "POST", body: JSON.stringify(profile) }),
+
   createAnalysis: (profile) =>
     request("/analyze/create", { method: "POST", body: JSON.stringify(profile) }),
 
@@ -30,6 +34,12 @@ export const api = {
     request(`/analyze/generate/${analysisId}`, { method: "POST" }),
 
   getReport: (analysisId) => request(`/analyze/report/${analysisId}`),
+
+  chat: (message, analysisId, history = []) =>
+    request("/chat", {
+      method: "POST",
+      body: JSON.stringify({ message, analysisId, history }),
+    }),
 
   health: () => request("/health"),
 };
