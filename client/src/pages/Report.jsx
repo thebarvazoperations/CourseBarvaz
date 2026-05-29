@@ -277,9 +277,18 @@ export default function Report() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-700 tracking-tight">דוח ניתוח משכנתא</h1>
-          <p className="mt-1 text-sm text-muted">
-            הופק {new Date(report.generatedAt).toLocaleDateString("he-IL")}
-            {report.demo && <span className="mr-2 badge bg-warn/15 text-warn">דמו</span>}
+          <p className="mt-1 text-sm text-primary italic font-300">
+            זה לא יועץ משכנתאות. זה יותר טוב.
+          </p>
+          <p className="mt-1 text-xs text-muted flex items-center gap-2">
+            <span>הופק {new Date(report.generatedAt).toLocaleDateString("he-IL")}</span>
+            {narrative?.guardrailApplied && (
+              <span className="badge bg-accent/15 text-accent text-xs">✓ עבר בדיקת ניטרליות</span>
+            )}
+            {!narrative?.guardrailApplied && !report.demo && (
+              <span className="badge bg-accent/15 text-accent text-xs">✓ ניטרלי מאומת</span>
+            )}
+            {report.demo && <span className="badge bg-warn/15 text-warn text-xs">דמו</span>}
           </p>
         </div>
         <button onClick={downloadPDF} className="btn-outline gap-2 text-sm self-start">
@@ -467,8 +476,14 @@ export default function Report() {
         </Section>
 
         {/* ---- Disclaimer ---- */}
-        <div className="rounded-xl border border-border/50 p-4 text-center text-xs text-muted leading-relaxed">
-          {narrative?.disclaimer}
+        <div className="rounded-xl border border-border/50 bg-surface p-5 text-center space-y-1.5">
+          <div className="text-sm font-700 text-primary italic">
+            זה לא יועץ משכנתאות. זה יותר טוב.
+          </div>
+          <div className="text-xs text-muted leading-relaxed">
+            {narrative?.disclaimer?.replace("זה לא יועץ משכנתאות. זה יותר טוב. | ", "") ||
+              "המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון."}
+          </div>
         </div>
       </div>
 

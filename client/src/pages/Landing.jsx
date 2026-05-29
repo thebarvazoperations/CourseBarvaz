@@ -82,15 +82,17 @@ export default function Landing() {
               <Sparkles size={12} />
               כלי AI ניטרלי לשוק הישראלי 🇮🇱
             </span>
-            <h1 className="mb-4 text-4xl sm:text-5xl font-700 leading-tight">
-              לא יועץ משכנתאות
+            <h1 className="mb-2 text-4xl sm:text-5xl font-700 leading-tight">
+              זה לא יועץ משכנתאות.
               <br />
-              <span className="text-primary">יותר טוב.</span>
+              <span className="text-primary">זה יותר טוב.</span>
             </h1>
-            <p className="mb-6 text-base text-muted leading-relaxed">
-              תדע מה לדרוש מהבנק — לפני שנכנסת לפגישה.
-              <br />
-              ניתוח AI ניטרלי. אין עמלות. אין אינטרס.
+            <p className="mb-2 text-lg font-300 text-muted leading-snug">
+              יועץ עובד בשביל עמלה. הכלי הזה עובד בשבילך.
+            </p>
+            <p className="mb-6 text-sm text-muted leading-relaxed">
+              תדע מה לדרוש מהבנק לפני שנכנסת לפגישה —
+              עם ניתוח AI ניטרלי, אפס אינטרס ואפס עמלות.
             </p>
             <Link to="/form" className="btn-primary">
               התחל ניתוח חינם
@@ -131,8 +133,11 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="mt-10 border-t border-border/50 py-6 text-center text-xs text-muted">
-        כלי המשכנתא © 2025 · מידע בלבד, אינו ייעוץ · לא מפוקח
+      <footer className="mt-10 border-t border-border/50 py-6 text-center text-xs text-muted space-y-1">
+        <div className="font-600 text-muted/70 italic">
+          "זה לא יועץ משכנתאות. זה יותר טוב."
+        </div>
+        <div>כלי המשכנתא © 2025 · מידע בלבד, אינו ייעוץ · לא מפוקח</div>
       </footer>
     </main>
   );

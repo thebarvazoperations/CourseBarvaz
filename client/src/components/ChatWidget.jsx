@@ -39,7 +39,7 @@ export default function ChatWidget({ analysisId }) {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      text: "שלום! אני כאן לעזור לך להבין את הדוח. שאל אותי כל שאלה על המשכנתא שלך.",
+      text: "שלום! אני כאן כדי לעזור להבין את הנתונים. אשיב על שאלות, אסביר מושגים, ואציג שיקולים לכאן ולכאן — בלי להחליט בשבילך.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -100,8 +100,8 @@ export default function ChatWidget({ analysisId }) {
               <Bot size={16} className="text-primary" />
             </div>
             <div>
-              <div className="text-sm font-700">עוזר המשכנתא</div>
-              <div className="text-xs text-muted">שואל? אני כאן</div>
+              <div className="text-sm font-700">כלי המשכנתא</div>
+              <div className="text-xs text-muted italic">לא יועץ. יותר טוב.</div>
             </div>
           </div>
 

@@ -1,63 +1,85 @@
 /**
- * Guardrail — קריאה שנייה ל-Gemini שבודקת שהטקסט נשאר ניטרלי
- * (ללא המלצה אישית, ללא בחירת בנק, ללא הכרעה בשביל המשתמש).
+ * Guardrail — שכבת ניטרליות כפולה:
+ * 1. regex מהיר על מילות מפתח סובייקטיביות
+ * 2. קריאה שנייה ל-Gemini עם רשימת בדיקה מפורטת
+ *
+ * עיקרון: אם *אחת* מהשכבות מוצאת בעיה — הטקסט נחשב לא בטוח.
  */
 
-const GUARDRAIL_PROMPT = `בדוק אם הטקסט הבא כולל אחד מאלה:
-1. המלצה אישית ("כדאי לך", "עדיף עבורך", "מתאים לך", "אני ממליץ")
-2. שם בנק ספציפי כבחירה מומלצת
-3. הכרעה בשביל המשתמש (בחירה במקומו)
+const GUARDRAIL_PROMPT = `אתה בוחן ניטרליות לכלי מידע פיננסי. בדוק את הטקסט הבא לפי הקריטריונים:
 
-החזר JSON בלבד, ללא טקסט נוסף וללא code fences:
-{"safe": true/false, "rewrite": "גרסה מתוקנת אם safe=false, אחרת null"}
+BIAS_TYPES:
+1. המלצה אישית — ביטויים כמו "כדאי לך", "עדיף עבורך", "מתאים לך", "אני ממליץ", "הייתי בוחר", "הבחירה הטובה"
+2. הכרעה בשביל המשתמש — "לכן בחר ב-X", "הפתרון הוא X", "ברור ש-X"
+3. בנק ספציפי כבחירה מומלצת — "הבנק הכי טוב הוא", "פנה ל-X"
+4. שימוש ב"אנחנו" בצורה הטיית דעת — "אנחנו ממליצים", "לדעתנו כדאי"
+5. לשון עתידית חד-משמעית — "תחסוך", "תרוויח", "תפסיד" (במקום "עשוי לחסוך", "עשוי להרוויח")
+
+כלל ה-Reframe: כל "כדאי לך X" חייב להיות "שיקול לטובת X הוא... שיקול נגד הוא..."
+
+החזר JSON בלבד, ללא code fences:
+{
+  "safe": true/false,
+  "violations": ["תיאור קצר של כל הפרה שנמצאה"],
+  "rewrite": "גרסה מתוקנת מלאה אם safe=false, אחרת null"
+}
 
 הטקסט לבדיקה:
 """
 {{TEXT}}
 """`;
 
-// fallback מבוסס regex למקרה שהקריאה ל-Gemini נכשלת
+// רשימה מקיפה של ביטויים אסורים (Hebrew + mixed)
 const FORBIDDEN_PATTERNS = [
-  /כדאי\s+לך/,
-  /עדיף\s+(?:לך|עבורך)/,
-  /מתאים\s+לך/,
-  /אני\s+ממליץ/,
-  /ההמלצה\s+שלי/,
+  /כדאי\s+לך/i,
+  /עדיף\s+(?:לך|עבורך|שתבחר)/i,
+  /מתאים\s+(?:לך|לפרופיל\s+שלך)/i,
+  /אני\s+ממליץ/i,
+  /ממליצים\s+(?:לך|על)/i,
+  /ההמלצה\s+(?:שלי|שלנו)/i,
+  /הייתי\s+(?:בוחר|לוקח|ממליץ)/i,
+  /הבחירה\s+(?:הנכונה|הטובה|המתאימה)/i,
+  /לכן\s+(?:בחר|קח|פנה)/i,
+  /ברור\s+ש/i,
+  /הפתרון\s+(?:הוא|הטוב)\s+/i,
+  /תחסוך\s+(?:הרבה|כסף)/i, // לשון ודאית (לא "עשוי לחסוך")
 ];
 
 function localCheck(text) {
-  const hit = FORBIDDEN_PATTERNS.some((p) => p.test(text));
-  return { safe: !hit, rewrite: null };
+  const violations = FORBIDDEN_PATTERNS
+    .filter((p) => p.test(text))
+    .map((p) => p.source);
+  return { safe: violations.length === 0, violations, rewrite: null };
 }
 
 /**
- * @param {object} model מודל Gemini מאותחל
+ * @param {object|null} model מודל Gemini מאותחל (null = demo)
  * @param {string} text הטיוטה לבדיקה
+ * @returns {{ safe: boolean, violations: string[], rewrite: string|null }}
  */
 async function runGuardrail(model, text) {
-  // בדיקה מקומית מהירה תמיד רצה
   const local = localCheck(text);
 
   if (!model) return local;
 
   try {
     const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: GUARDRAIL_PROMPT.replace("{{TEXT}}", text) }],
-        },
-      ],
+      contents: [{ role: "user", parts: [{ text: GUARDRAIL_PROMPT.replace("{{TEXT}}", text) }] }],
     });
-    let raw = result.response.text().trim();
-    // ניקוי code fences אם הוחזרו
-    raw = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    let raw = result.response.text().trim()
+      .replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
     const parsed = JSON.parse(raw);
-    // אם אחת מהבדיקות מצאה בעיה — לא בטוח
-    if (!local.safe && parsed.safe) {
-      return { safe: false, rewrite: parsed.rewrite || null };
+
+    // כל הפרה — גם מקומית, גם מה-AI — מדליקה אדום
+    const combinedViolations = [...(local.violations || []), ...(parsed.violations || [])];
+    if (!local.safe || !parsed.safe) {
+      return {
+        safe: false,
+        violations: combinedViolations,
+        rewrite: parsed.rewrite || null,
+      };
     }
-    return parsed;
+    return { safe: true, violations: [], rewrite: null };
   } catch (err) {
     console.warn("[guardrail] קריאת Gemini נכשלה, נופל לבדיקה מקומית:", err.message);
     return local;

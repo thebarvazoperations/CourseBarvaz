@@ -1,130 +1,169 @@
 /**
  * אינטגרציה עם Google Gemini (gemini-1.5-flash).
- * מייצר את הנרטיב של הדוח על בסיס הנתונים המספריים שכבר חושבו.
+ * Gemini מייצר רק נרטיב — כל המספרים מחושבים דטרמיניסטית ב-finance.js.
+ *
+ * שכבות ניטרליות:
+ *  1. SYSTEM_PROMPT — כללי ה"מותר/אסור" + תבנית ה-Reframe
+ *  2. buildPrompt — מבנה JSON מחייב שמונע אמירות חופשיות
+ *  3. runGuardrail — קריאה שנייה שבוחנת ומחדשת
  */
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { runGuardrail } = require("./guardrail");
 
-const SYSTEM_PROMPT = `אתה כלי מידע משכנתאות ניטרלי לשוק הישראלי.
-אין לך זיקה לאף בנק. אתה לא יועץ ואין לך רישיון.
+// ===== SYSTEM PROMPT — שכבה 1 =====
+const SYSTEM_PROMPT = `אתה "כלי המשכנתא" — כלי מידע ניטרלי לשוק המשכנתאות הישראלי.
+הסלוגן שלך: "זה לא יועץ משכנתאות. זה יותר טוב."
 
-מותר:
-- לחשב תרחישים מספריים מדויקים
-- להציג טווחי ריבית ריאליים
-- לנתח רגישות לשינוי ריבית
-- לתאר שיקולים לטובת ולנגד מסלולים
-- benchmark ריבית לפרופיל זה
+הגדרת זהות:
+- אינך יועץ, אין לך רישיון, אין לך זיקה לבנק כלשהו.
+- אתה כלי שנותן מידע מספרי ניטרלי, לא מי שמחליט בשביל הלקוח.
 
-אסור:
-- "כדאי לך" / "מתאים לך" / "עדיף עבורך"
-- להמליץ על בנק ספציפי
-- להכריע בשביל המשתמש
+=== מה מותר ===
+✓ חישוב תרחישים מספריים מדויקים
+✓ הצגת טווחי ריבית ריאליים לשוק הישראלי
+✓ ניתוח רגישות לשינוי ריבית
+✓ תיאור שיקולים *לטובת* ו*נגד* מסלול — שניהם תמיד, ללא הכרעה
+✓ benchmark ריבית לפרופיל ספציפי
+✓ שאלות ניטרליות שהלקוח יכול לשאול את הבנק
 
-כשאתה רוצה לכתוב "כדאי לך X" — כתוב:
-"שיקול לטובת X הוא... שיקול נגד הוא..."
+=== מה אסור בהחלט ===
+✗ "כדאי לך" / "עדיף עבורך" / "מתאים לך" / "הייתי בוחר"
+✗ "אני ממליץ" / "ממליצים על" / "ההמלצה שלנו"
+✗ שם בנק ספציפי כ*בחירה מועדפת*
+✗ לשון ודאית על העתיד: "תחסוך", "תרוויח" (כתוב: "עשוי לחסוך")
+✗ הכרעה בשביל המשתמש: "לכן בחר ב-X", "הפתרון הוא X"
 
-סיים תמיד ב:
-"המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות
-ואינו תחליף לבעל רישיון."`;
+=== כלל ה-REFRAME (חובה) ===
+כשאתה רוצה לכתוב "כדאי לך X" — כתוב במקום:
+  "שיקול לטובת X: [סיבה]. שיקול נגד X: [סיבה]. ההחלטה תלויה בך."
+
+=== DISCLAIMER — חובה בסוף כל תגובה ===
+"זה לא יועץ משכנתאות. זה יותר טוב. | המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון."`;
+
+// ===== SYSTEM PROMPT לצ'אט — גרסה מקוצרת ומחמירה =====
+const CHAT_SYSTEM_PROMPT = `אתה "כלי המשכנתא" — עוזר מידע ניטרלי. הסלוגן: "זה לא יועץ משכנתאות. זה יותר טוב."
+
+חוקים קשיחים לכל הודעה:
+1. ענה בעברית, 2-4 משפטים מקסימום.
+2. אסור: "כדאי לך", "אני ממליץ", "עדיף", שם בנק ספציפי כבחירה, הכרעה בשביל המשתמש.
+3. מותר: נתונים, הסברים, שיקולים לכאן ולכאן, שאלות לבנק.
+4. כל "כדאי" → "שיקול לטובת... שיקול נגד..."
+5. סיים תמיד: "זה לא יועץ משכנתאות. זה יותר טוב."`;
 
 let genAI = null;
-let model = null;
+let reportModel = null;
+let guardModel = null;
 
 if (process.env.GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  model = genAI.getGenerativeModel({
+  reportModel = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
     systemInstruction: SYSTEM_PROMPT,
   });
+  guardModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 }
-// מודל נפרד ל-guardrail ללא system instruction
-const guardModel = genAI
-  ? genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-  : null;
 
+// ===== PROMPT לדוח — שכבה 2: מבנה JSON מחייב =====
 function buildPrompt(profile, reportData) {
-  return `הנה פרופיל פיננסי אנונימי ונתונים מספריים שכבר חושבו. כתוב ניתוח נרטיבי בעברית.
+  return `כתוב ניתוח נרטיבי בעברית על הפרופיל הפיננסי שלמטה.
+חשוב: כל שדה בJSON חייב לעמוד בכללי הניטרליות. אין המלצות, רק שיקולים.
 
-פרופיל:
-- סכום משכנתא: ${profile.loanAmount.toLocaleString("he-IL")} ₪
-- הון עצמי: ${profile.equity.toLocaleString("he-IL")} ₪
+פרופיל אנונימי:
+- סכום משכנתא: ₪${profile.loanAmount.toLocaleString("he-IL")}
+- הון עצמי: ₪${profile.equity.toLocaleString("he-IL")}
 - סוג עסקה: ${profile.dealType === "refinance" ? "מיחזור" : "משכנתא חדשה"}
-- הכנסה חודשית נטו: ${profile.monthlyIncome.toLocaleString("he-IL")} ₪
-- החזרי הלוואות קיימים: ${profile.existingLoans.toLocaleString("he-IL")} ₪
-- גיל: ${profile.age}
-- תקופה מבוקשת: ${profile.termYears} שנים
-- רמת ודאות מועדפת (0=ודאות מקסימלית, 100=מוכן לסיכון): ${profile.riskTolerance}
+- הכנסה חודשית נטו: ₪${profile.monthlyIncome.toLocaleString("he-IL")}
+- החזרי הלוואות קיימים: ₪${profile.existingLoans.toLocaleString("he-IL")}
+- גיל: ${profile.age} | תקופה: ${profile.termYears} שנים
+- רמת ודאות (0=מקסימלית, 100=מוכן לסיכון): ${profile.riskTolerance}
+- דירוג אשראי (0-100): ${profile.creditScore || 70}
 
 נתונים מחושבים:
-${JSON.stringify(reportData, null, 2)}
+${JSON.stringify({
+  capacity: reportData.capacity,
+  summary: reportData.summary,
+  mixes: reportData.mixes,
+  benchmark: reportData.benchmark,
+  refinance: reportData.refinance,
+  rateOffer: reportData.rateOffer,
+}, null, 2)}
 
-כתוב פסקאות קצרות וברורות עבור כל אחד מהחלקים הבאים. החזר JSON בלבד במבנה:
+החזר JSON בלבד במבנה הזה (אסור לחרוג ממנו):
 {
-  "intro": "פסקת פתיחה אישית-נייטרלית על הפרופיל",
-  "capacityNote": "ניתוח כושר ההחזר במשפט-שניים",
-  "mixesNote": "השוואה בין שלושת התמהילים — שיקולים לכאן ולכאן, ללא הכרעה",
-  "sensitivityNote": "מה מלמד ניתוח הרגישות",
-  "benchmarkNote": "הסבר על טווח הריבית לדרוש",
-  "refinanceNote": "ניתוח המיחזור (או null אם לא רלוונטי)",
-  "questions": ["7 שאלות חדות לשאול את הבנק"],
-  "disclaimer": "המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון."
+  "intro": "משפט-שניים ניטרליים על הפרופיל — ללא שיפוטיות",
+  "capacityNote": "מה מספר כושר ההחזר — עובדות בלבד",
+  "mixesNote": "שיקולים לטובת ונגד כל תמהיל — בלי להכריע. חובה: לכל תמהיל שיקול אחד בעד ואחד נגד",
+  "sensitivityNote": "מה מראה ניתוח הרגישות — עובדות, לא המלצות",
+  "benchmarkNote": "הסבר הטווח — מה ריאלי לפרופיל זה, ללא הכרעה",
+  "refinanceNote": "ניתוח נתוני המיחזור בלבד (או null)",
+  "questions": [
+    "שאלה 1 — ניסוח ניטרלי לשאול את הבנק",
+    "שאלה 2", "שאלה 3", "שאלה 4", "שאלה 5", "שאלה 6", "שאלה 7"
+  ],
+  "disclaimer": "זה לא יועץ משכנתאות. זה יותר טוב. | המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון."
 }`;
 }
 
 function parseJSON(raw) {
-  let s = raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
-  return JSON.parse(s);
+  return JSON.parse(
+    raw.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim()
+  );
 }
 
-/**
- * נרטיב ברירת מחדל כשאין מפתח API (מצב דמו/פיתוח).
- */
+// ===== Fallback (ללא API) =====
 function fallbackNarrative(profile, reportData) {
+  const { capacity, benchmark, refinance } = reportData;
   return {
-    intro:
-      "להלן ניתוח ניטרלי של הפרופיל הפיננסי שהוזן. המספרים חושבו לפי הנחות שוק שמרניות.",
-    capacityNote: reportData.capacity.realistic
-      ? "ההחזר החודשי המשוער נמצא בתוך גבול 35% מההכנסה נטו."
-      : "ההחזר החודשי המשוער חורג מגבול 35% מההכנסה נטו — שיקול לטובת הארכת תקופה או הקטנת סכום.",
+    intro: "הנתונים שהוזנו עובדו. להלן ניתוח מספרי ניטרלי.",
+    capacityNote: capacity.realistic
+      ? "ההחזר המשוער נמצא בטווח כלל 35% מהכנסה נטו."
+      : "ההחזר המשוער חורג מכלל 35%. שיקול לטובת הארכת תקופה: יקטין החזר. שיקול נגד: יגדיל עלות כוללת.",
     mixesNote:
-      "תמהיל שמרני מקטין חשיפה לשינויי ריבית אך עלותו הכוללת גבוהה יותר. תמהיל דינמי מוזיל את העלות הצפויה אך מגדיל את החשיפה. שיקול לטובת כל אחד תלוי ברמת הוודאות הרצויה.",
+      "תמהיל שמרני — שיקול בעד: ודאות מלאה בהחזר. שיקול נגד: עלות כוללת גבוהה יותר.\n" +
+      "תמהיל דינמי — שיקול בעד: עלות צפויה נמוכה יותר. שיקול נגד: חשיפה לעליית ריבית.\n" +
+      "ההחלטה תלויה ברמת הוודאות שהפרופיל מבקש.",
     sensitivityNote:
-      "ככל ששיעור הפריים בתמהיל גבוה יותר, כך ההחזר רגיש יותר לעליית ריבית. הטבלה מציגה את ההפרש בכל תרחיש.",
-    benchmarkNote: `טווח ריבית ריאלי לפרופיל זה הוא ${reportData.benchmark.realisticLow}%–${reportData.benchmark.realisticHigh}%. נקודת התעקשות סבירה: ${reportData.benchmark.fairPushTarget}%.`,
-    refinanceNote: reportData.refinance
-      ? `החיסכון החודשי המשוער הוא ${reportData.refinance.monthlySaving} ₪, עם נקודת איזון לאחר ${reportData.refinance.breakEvenMonths || "—"} חודשים.`
+      "ניתוח הרגישות מראה את גובה ההחזר בכל תרחיש ריבית. ככל שחלק הפריים גדול יותר, כך ההשפעה גדולה יותר.",
+    benchmarkNote: `לפרופיל זה, הטווח הריאלי הוא ${benchmark.realisticLow}%–${benchmark.realisticHigh}%. נקודת התעקשות היסטורית: ${benchmark.fairPushTarget}%.`,
+    refinanceNote: refinance
+      ? `פוטנציאל חיסכון חודשי: ₪${refinance.monthlySaving.toLocaleString("he-IL")}. נקודת איזון: ${refinance.breakEvenMonths || "—"} חודשים.`
       : null,
     questions: [
-      "מהי הריבית הנמוכה ביותר שאתם יכולים לאשר לפרופיל שלי?",
-      "מהו תמהיל המסלולים שאתם מציעים ולמה דווקא הוא?",
+      "מהי הריבית הנמוכה ביותר שאפשר לקבל על פרופיל כזה?",
+      "מהו התמהיל שאתם מציעים ומהם השיקולים שהובילו אליו?",
       "מה ההחזר החודשי בכל מסלול בנפרד?",
-      "מה קורה להחזר אם הפריים יעלה ב-1%?",
-      "האם יש עמלות פתיחת תיק או עלויות נלוות?",
-      "מהם תנאי הפירעון המוקדם בכל מסלול?",
-      "האם ניתן לשלב מסלול בריבית קבועה ארוכה לוודאות?",
+      "מה קורה להחזר אם ריבית הפריים עולה ב-1%?",
+      "מהן עמלות פתיחת התיק וכל עלות נלווית?",
+      "מה תנאי הפירעון המוקדם בכל מסלול?",
+      "אילו מסמכים נדרשים לאישור עקרוני?",
     ],
     disclaimer:
-      "המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון.",
+      "זה לא יועץ משכנתאות. זה יותר טוב. | המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון.",
   };
 }
 
-/**
- * מייצר את נרטיב הדוח, כולל מעבר guardrail.
- */
+// ===== generateNarrative — שלוש שכבות =====
 async function generateNarrative(profile, reportData) {
-  if (!model) {
+  if (!reportModel) {
     return { narrative: fallbackNarrative(profile, reportData), demo: true };
   }
 
   const prompt = buildPrompt(profile, reportData);
-  const result = await model.generateContent({
+  const result = await reportModel.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
   });
   const draft = result.response.text();
 
-  // guardrail על הטקסט החופשי (שדות הנרטיב)
-  const narrative = parseJSON(draft);
+  let narrative;
+  try {
+    narrative = parseJSON(draft);
+  } catch {
+    narrative = fallbackNarrative(profile, reportData);
+    return { narrative, demo: false };
+  }
+
+  // שכבה 3 — guardrail על כל שדות הנרטיב
   const combinedText = [
     narrative.intro,
     narrative.capacityNote,
@@ -132,15 +171,27 @@ async function generateNarrative(profile, reportData) {
     narrative.sensitivityNote,
     narrative.benchmarkNote,
     narrative.refinanceNote || "",
+    ...(narrative.questions || []),
   ].join("\n");
 
   const check = await runGuardrail(guardModel, combinedText);
-  if (!check.safe && check.rewrite) {
+  if (!check.safe) {
     narrative.guardrailApplied = true;
-    narrative.mixesNote = check.rewrite; // מחליפים את החלק הסובייקטיבי ביותר
+    narrative.guardrailViolations = check.violations;
+    if (check.rewrite) {
+      // מחליפים רק את החלק הסובייקטיבי ביותר (mixesNote)
+      narrative.mixesNote = check.rewrite;
+    } else {
+      // fallback: מחליפים לנוסח ברירת מחדל בטוח
+      narrative.mixesNote = fallbackNarrative(profile, reportData).mixesNote;
+    }
   }
+
+  // מוודאים שה-disclaimer תמיד כולל את הסלוגן
+  narrative.disclaimer =
+    "זה לא יועץ משכנתאות. זה יותר טוב. | המידע כאן הוא מידע בלבד, אינו ייעוץ משכנתאות ואינו תחליף לבעל רישיון.";
 
   return { narrative, demo: false };
 }
 
-module.exports = { generateNarrative, SYSTEM_PROMPT };
+module.exports = { generateNarrative, SYSTEM_PROMPT, CHAT_SYSTEM_PROMPT };

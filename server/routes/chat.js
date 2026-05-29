@@ -5,6 +5,7 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../utils/db");
+const { CHAT_SYSTEM_PROMPT } = require("../utils/gemini");
 
 let genAI = null;
 let chatModel = null;
@@ -14,13 +15,7 @@ if (process.env.GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   chatModel = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",
-    systemInstruction: `אתה עוזר מידע למשכנתאות בישראל. המשתמש קיבל דוח ניתוח מפורט ועכשיו שואל שאלות.
-ענה בעברית, קצר וברור — 2-4 משפטים מקסימום לתשובה רגילה.
-השתמש בנתונים מהדוח שניתן לך כהקשר.
-אסור: "כדאי לך", "אני ממליץ", שם בנק ספציפי, הכרעה בשביל המשתמש.
-מותר: הסברים, חישובים, השוואות, הצגת שיקולים לכאן ולכאן.
-אם אינך יודע — אמור זאת ישירות.
-סיים תמיד עם הבהרה שזה מידע בלבד.`,
+    systemInstruction: CHAT_SYSTEM_PROMPT,
   });
 }
 
