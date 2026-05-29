@@ -27,6 +27,7 @@ import AmortizationChart from "../components/AmortizationChart.jsx";
 import CostCompareChart from "../components/CostCompareChart.jsx";
 import RateOffer from "../components/RateOffer.jsx";
 import ChatWidget from "../components/ChatWidget.jsx";
+import Term from "../components/Term.jsx";
 
 // ---- Primitive components ----
 
@@ -69,7 +70,7 @@ function GaugeBar({ label, value, max, color, okThreshold, inverted = false }) {
   );
 }
 
-function Section({ id, title, icon: Icon, note, children, defaultOpen = true }) {
+function Section({ id, title, icon: Icon, note, terms, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div id={id} className="card overflow-hidden">
@@ -86,6 +87,14 @@ function Section({ id, title, icon: Icon, note, children, defaultOpen = true }) 
       {open && (
         <div className="px-6 pb-6 space-y-5">
           {note && <p className="text-sm text-muted leading-relaxed border-r-2 border-primary/40 pr-3">{note}</p>}
+          {terms?.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+              <span className="text-xs text-muted">מושגים:</span>
+              {terms.map((t) => (
+                <Term key={t} id={t} />
+              ))}
+            </div>
+          )}
           {children}
         </div>
       )}
@@ -340,7 +349,7 @@ export default function Report() {
         )}
 
         {/* ---- כושר החזר ---- */}
-        <Section id="capacity" title="כושר החזר" icon={Wallet} note={narrative?.capacityNote} defaultOpen>
+        <Section id="capacity" title="כושר החזר" icon={Wallet} note={narrative?.capacityNote} terms={["dti", "equity"]} defaultOpen>
           <div className="flex flex-wrap items-center gap-3">
             <div className="rounded-xl bg-surface-2 px-5 py-3">
               <div className="text-xs text-muted">החזר מקסימלי (כלל 35%)</div>
@@ -356,7 +365,7 @@ export default function Report() {
         </Section>
 
         {/* ---- תמהילים + השוואת עלויות ---- */}
-        <Section id="mixes" title="השוואת תמהילים" icon={PieChart} note={narrative?.mixesNote}>
+        <Section id="mixes" title="השוואת תמהילים" icon={PieChart} note={narrative?.mixesNote} terms={["mix", "prime", "fixedUnlinked"]}>
           <MixTable mixes={mixes} />
           <div className="mt-4">
             <p className="text-xs text-muted mb-3">השוואת עלות כוללת לפי תמהיל</p>
@@ -365,7 +374,7 @@ export default function Report() {
         </Section>
 
         {/* ---- ניתוח רגישות ---- */}
-        <Section id="sensitivity" title="ניתוח רגישות לריבית" icon={Activity} note={narrative?.sensitivityNote}>
+        <Section id="sensitivity" title="ניתוח רגישות לריבית" icon={Activity} note={narrative?.sensitivityNote} terms={["sensitivity", "prime"]}>
           <SensitivityChart sensitivity={sensitivity} />
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm border-collapse">
@@ -395,7 +404,7 @@ export default function Report() {
 
         {/* ---- לוח אמורטיזציה ---- */}
         {amortization?.length > 0 && (
-          <Section id="amortization" title="לוח סילוקין — קרן מול ריבית" icon={BarChart2} note="ככל שחולפות שנים, חלק הקרן בתשלום החודשי גדל וחלק הריבית קטן.">
+          <Section id="amortization" title="לוח סילוקין — קרן מול ריבית" icon={BarChart2} note="ככל שחולפות שנים, חלק הקרן בתשלום החודשי גדל וחלק הריבית קטן." terms={["amortization", "spitzer", "principal"]}>
             <AmortizationChart schedule={amortization} />
             <div className="mt-5">
               <p className="text-xs text-muted mb-3">snapshot לכל 5 שנים</p>
@@ -405,7 +414,7 @@ export default function Report() {
         )}
 
         {/* ---- Benchmark ריבית ---- */}
-        <Section id="benchmark" title="Benchmark ריבית" icon={Target} note={narrative?.benchmarkNote}>
+        <Section id="benchmark" title="Benchmark ריבית" icon={Target} note={narrative?.benchmarkNote} terms={["benchmark", "bps"]}>
           <BenchmarkBar benchmark={benchmark} />
         </Section>
 
@@ -416,6 +425,7 @@ export default function Report() {
             title="הריבית שמגיע לך"
             icon={Target}
             note="חישוב מותאם אישית לפי דירוג האשראי, המינוף, יחס ההחזר והנכסים שלך — והמנופים שצריך להתעקש עליהם מול הבנק."
+            terms={["creditScore", "ltv", "dti", "bps"]}
             defaultOpen
           >
             <RateOffer rateOffer={rateOffer} />
@@ -424,7 +434,7 @@ export default function Report() {
 
         {/* ---- רפייננס ---- */}
         {refinance && (
-          <Section id="refinance" title="ניתוח מיחזור (רפייננס)" icon={RefreshCw} note={narrative?.refinanceNote}>
+          <Section id="refinance" title="ניתוח מיחזור (רפייננס)" icon={RefreshCw} note={narrative?.refinanceNote} terms={["refinance", "breakEven", "earlyRepayment"]}>
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               <BBox label="החזר נוכחי" value={formatCurrency(refinance.currentMonthly)} color="#9ca3af" />
               <BBox label="החזר לאחר מיחזור" value={formatCurrency(refinance.newMonthly)} color="#6366f1" />
