@@ -35,11 +35,14 @@ export const api = {
 
   getReport: (analysisId) => request(`/analyze/report/${analysisId}`),
 
-  chat: (message, analysisId, history = []) =>
+  // השרת מנהל את הזיכרון — מעבירים רק הודעה + תמונות. images = [{mediaType, data}]
+  chat: (message, analysisId, images = []) =>
     request("/chat", {
       method: "POST",
-      body: JSON.stringify({ message, analysisId, history }),
+      body: JSON.stringify({ message, analysisId, images }),
     }),
+
+  getChatHistory: (analysisId) => request(`/chat/${analysisId}`),
 
   health: () => request("/health"),
 };

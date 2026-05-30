@@ -24,6 +24,8 @@ app.post("/api/payment/webhook", express.raw({ type: "application/json" }), webh
 
 // --- Middleware כללי ---
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
+// נתיב הצ'אט מקבל תמונות (base64) — מגבלת גוף גדולה יותר, לפני ה-parser הכללי
+app.use("/api/chat", express.json({ limit: "8mb" }), chatRouter);
 app.use(express.json({ limit: "100kb" }));
 
 // --- Rate limiting: 10 בקשות לשעה ל-IP על נתיבי ה-API ---
@@ -39,7 +41,7 @@ app.use("/api/analyze", apiLimiter);
 // --- Routes ---
 app.use("/api/analyze", analyzeRouter);
 app.use("/api/payment", paymentRouter);
-app.use("/api/chat", chatRouter);
+// /api/chat כבר מותקן למעלה עם parser בגודל מוגדל
 
 app.get("/api/health", (req, res) => {
   res.json({

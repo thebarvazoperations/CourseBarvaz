@@ -9,7 +9,14 @@
  *
  * אם יותר ממפתח אחד קיים, הסדר הוא Claude > OpenAI > Gemini.
  * אפשר לאלץ ספק ספציפי עם: AI_PROVIDER=claude|openai|gemini
+ *
+ * chat() תומך בתמונות (vision) דרך פרמטר images אופציונלי:
+ *   images = [{ mediaType: "image/png", data: "<base64>" }]
+ * מגבלת הטוקנים לתשובה נשלטת ע"י CHAT_MAX_TOKENS ב-.env (ברירת מחדל 1024).
  */
+
+const CHAT_MAX_TOKENS = Number(process.env.CHAT_MAX_TOKENS) || 1024;
+const GEN_MAX_TOKENS = 2048;
 
 // ---- Anthropic ----
 function buildAnthropicProvider() {
@@ -21,20 +28,32 @@ function buildAnthropicProvider() {
     async generate(systemPrompt, userMessage) {
       const msg = await client.messages.create({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 2048,
+        max_tokens: GEN_MAX_TOKENS,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
       });
       return msg.content[0].text;
     },
-    async chat(systemPrompt, history, newMessage) {
+    async chat(systemPrompt, history, newMessage, images = []) {
+      let userContent;
+      if (images.length > 0) {
+        userContent = [
+          { type: "text", text: newMessage },
+          ...images.map((img) => ({
+            type: "image",
+            source: { type: "base64", media_type: img.mediaType, data: img.data },
+          })),
+        ];
+      } else {
+        userContent = newMessage;
+      }
       const messages = [
         ...history.map((h) => ({ role: h.role === "model" ? "assistant" : h.role, content: h.content })),
-        { role: "user", content: newMessage },
+        { role: "user", content: userContent },
       ];
       const msg = await client.messages.create({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1024,
+        max_tokens: CHAT_MAX_TOKENS,
         system: systemPrompt,
         messages,
       });
@@ -57,20 +76,32 @@ function buildOpenAIProvider() {
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
         ],
-        max_tokens: 2048,
+        max_tokens: GEN_MAX_TOKENS,
       });
       return res.choices[0].message.content;
     },
-    async chat(systemPrompt, history, newMessage) {
+    async chat(systemPrompt, history, newMessage, images = []) {
+      let userContent;
+      if (images.length > 0) {
+        userContent = [
+          { type: "text", text: newMessage },
+          ...images.map((img) => ({
+            type: "image_url",
+            image_url: { url: `data:${img.mediaType};base64,${img.data}` },
+          })),
+        ];
+      } else {
+        userContent = newMessage;
+      }
       const messages = [
         { role: "system", content: systemPrompt },
         ...history.map((h) => ({ role: h.role === "model" ? "assistant" : h.role, content: h.content })),
-        { role: "user", content: newMessage },
+        { role: "user", content: userContent },
       ];
       const res = await client.chat.completions.create({
         model: "gpt-4o-mini",
         messages,
-        max_tokens: 1024,
+        max_tokens: CHAT_MAX_TOKENS,
       });
       return res.choices[0].message.content;
     },
@@ -95,17 +126,24 @@ function buildGeminiProvider(systemPrompt) {
       });
       return result.response.text();
     },
-    async chat(sysPrompt, history, newMessage) {
+    async chat(sysPrompt, history, newMessage, images = []) {
       const model = genAI.getGenerativeModel({
         model: "gemini-2.0-flash",
         systemInstruction: sysPrompt,
+        generationConfig: { maxOutputTokens: CHAT_MAX_TOKENS },
       });
+      const userParts = [
+        { text: newMessage },
+        ...images.map((img) => ({
+          inlineData: { mimeType: img.mediaType, data: img.data },
+        })),
+      ];
       const contents = [
         ...history.map((h) => ({
           role: h.role === "assistant" ? "model" : h.role,
           parts: [{ text: h.content }],
         })),
-        { role: "user", parts: [{ text: newMessage }] },
+        { role: "user", parts: userParts },
       ];
       const result = await model.generateContent({ contents });
       return result.response.text();

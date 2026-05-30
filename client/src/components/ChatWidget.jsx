@@ -1,14 +1,20 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User, Loader2 } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Loader2, Paperclip, Image as ImageIcon } from "lucide-react";
 import { api } from "../lib/api.js";
 
 const SUGGESTED = [
   "מה זה פריים?",
-  "מה ההבדל בין קל\"צ לפריים?",
-  "מהי נקודת השיא של ההלוואה?",
+  "מה ה-LTV שלי ומה משמעותו?",
+  "מה ההחזר החודשי בכל תמהיל?",
   "מתי כדאי למחזר?",
-  "מה אחוז ה-LTV שלי ומה משמעותו?",
 ];
+
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
+
+const GREETING = {
+  role: "assistant",
+  text: "שלום! אני כאן כדי לעזור להבין את הנתונים של הניתוח שלך. אפשר גם להעלות צילום מסך של הצעת בנק ואשווה אותה לנתונים שלך — בלי להחליט בשבילך.",
+};
 
 function Message({ msg }) {
   const isUser = msg.role === "user";
@@ -28,6 +34,19 @@ function Message({ msg }) {
             : "bg-surface-2 text-text rounded-tl-sm"
         }`}
       >
+        {/* תצוגת תמונה — או thumbnail מקומי (preview) או דגל מהיסטוריה */}
+        {msg.image && (
+          <img
+            src={msg.image}
+            alt="צרופה"
+            className="mb-2 max-h-40 rounded-lg border border-border"
+          />
+        )}
+        {!msg.image && msg.hasImage && (
+          <div className="mb-2 flex items-center gap-1.5 text-xs text-muted">
+            <ImageIcon size={13} /> תמונה צורפה
+          </div>
+        )}
         {msg.text}
       </div>
     </div>
@@ -36,45 +55,81 @@ function Message({ msg }) {
 
 export default function ChatWidget({ analysisId }) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      text: "שלום! אני כאן כדי לעזור להבין את הנתונים. אשיב על שאלות, אסביר מושגים, ואציג שיקולים לכאן ולכאן — בלי להחליט בשבילך.",
-    },
-  ]);
+  const [messages, setMessages] = useState([GREETING]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [attachment, setAttachment] = useState(null); // { dataUrl, mediaType, base64 }
+  const [notice, setNotice] = useState("");
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const fileRef = useRef(null);
+  const loadedRef = useRef(false);
+
+  // שחזור היסטוריה בפתיחה ראשונה
+  useEffect(() => {
+    if (!open || loadedRef.current || !analysisId) return;
+    loadedRef.current = true;
+    api
+      .getChatHistory(analysisId)
+      .then((res) => {
+        if (res.history?.length) {
+          setMessages([GREETING, ...res.history]);
+        }
+      })
+      .catch(() => {});
+  }, [open, analysisId]);
 
   useEffect(() => {
     if (open) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       inputRef.current?.focus();
     }
-  }, [open, messages]);
+  }, [open, messages, loading]);
+
+  function handleFile(e) {
+    setNotice("");
+    const file = e.target.files?.[0];
+    e.target.value = ""; // לאפשר בחירה חוזרת של אותו קובץ
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setNotice("ניתן להעלות תמונות בלבד.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setNotice("התמונה גדולה מדי (מקסימום 4MB).");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      const base64 = String(dataUrl).split(",")[1];
+      setAttachment({ dataUrl, mediaType: file.type, base64 });
+    };
+    reader.readAsDataURL(file);
+  }
 
   async function send(text) {
-    const msg = text || input.trim();
-    if (!msg || loading) return;
+    const msg = (text || input.trim());
+    if ((!msg && !attachment) || loading) return;
     setInput("");
+    setNotice("");
 
-    const userMsg = { role: "user", text: msg };
+    const userMsg = {
+      role: "user",
+      text: msg,
+      image: attachment?.dataUrl || null,
+    };
     setMessages((m) => [...m, userMsg]);
+
+    const images = attachment ? [{ mediaType: attachment.mediaType, data: attachment.base64 }] : [];
+    setAttachment(null);
     setLoading(true);
 
     try {
-      const history = messages
-        .filter((m) => m.role !== "assistant" || messages.indexOf(m) > 0)
-        .map((m) => ({ role: m.role === "user" ? "user" : "model", text: m.text }));
-
-      const res = await api.chat(msg, analysisId, history);
+      const res = await api.chat(msg || "(תמונה צורפה)", analysisId, images);
       setMessages((m) => [...m, { role: "assistant", text: res.answer }]);
     } catch (e) {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", text: "מצטער, אירעה שגיאה. נסה שוב." },
-      ]);
+      setMessages((m) => [...m, { role: "assistant", text: "מצטער, אירעה שגיאה. נסה שוב." }]);
     } finally {
       setLoading(false);
     }
@@ -126,7 +181,7 @@ export default function ChatWidget({ analysisId }) {
           </div>
 
           {/* שאלות מהירות */}
-          {messages.length <= 2 && (
+          {messages.length <= 1 && (
             <div className="flex flex-wrap gap-1.5 border-t border-border px-3 py-2">
               {SUGGESTED.slice(0, 3).map((q) => (
                 <button
@@ -140,8 +195,43 @@ export default function ChatWidget({ analysisId }) {
             </div>
           )}
 
+          {/* תצוגת צרופה / הודעת מערכת */}
+          {(attachment || notice) && (
+            <div className="border-t border-border px-3 py-2">
+              {attachment && (
+                <div className="flex items-center gap-2 rounded-lg bg-surface-2 p-1.5">
+                  <img src={attachment.dataUrl} alt="תצוגה" className="h-10 w-10 rounded object-cover" />
+                  <span className="flex-1 text-xs text-muted">תמונה מצורפת</span>
+                  <button
+                    onClick={() => setAttachment(null)}
+                    className="text-muted hover:text-danger"
+                    aria-label="הסר תמונה"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              )}
+              {notice && <div className="mt-1 text-xs text-danger">{notice}</div>}
+            </div>
+          )}
+
           {/* קלט */}
-          <div className="flex gap-2 border-t border-border p-3">
+          <div className="flex items-center gap-2 border-t border-border p-3">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFile}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={loading}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted transition-colors hover:text-primary disabled:opacity-40"
+              aria-label="צרף תמונה"
+            >
+              <Paperclip size={15} />
+            </button>
             <input
               ref={inputRef}
               value={input}
@@ -153,7 +243,7 @@ export default function ChatWidget({ analysisId }) {
             />
             <button
               onClick={() => send()}
-              disabled={!input.trim() || loading}
+              disabled={(!input.trim() && !attachment) || loading}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-gradient text-white disabled:opacity-40 transition-opacity"
             >
               <Send size={15} />
