@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>סימולטור ועדה רפואית · ביטוח לאומי</title>
+    <meta
+      name="description"
+      content="רופא AI שמראיין אתכם לקראת הוועדה הרפואית של הביטוח הלאומי, מעריך אחוזי נכות וקצבה צפויה, ונותן טיפים."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">🩺</span>
+        <div>
+          <h1>סימולטור ועדה רפואית</h1>
+          <p class="sub">התכוננו לוועדה הרפואית של הביטוח הלאומי</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- מסך פתיחה: הזנת הדוח הרפואי -->
+    <main id="intro" class="intro">
+      <section class="card">
+        <h2>ברוכים הבאים 👋</h2>
+        <p>
+          הדביקו כאן את הדוח הרפואי שלכם מהביטוח הלאומי (או סיכום מחלה / אבחנות),
+          ו<strong>ד״ר אבי</strong> – הרופא הווירטואלי – יראיין אתכם בדיוק כמו
+          בוועדה הרפואית. בסוף תקבלו הערכת אחוזי נכות, קצבה צפויה, וטיפים כיצד
+          להציג את מצבכם נכון.
+        </p>
+
+        <label class="field-label" for="reportInput">הדוח הרפואי / האבחנות שלי:</label>
+        <textarea
+          id="reportInput"
+          rows="9"
+          placeholder="לדוגמה: סובל מכאבי גב כרוניים (פריצת דיסק L4-L5), סוכרת מאוזנת חלקית, ודיכאון בטיפול תרופתי. עברתי פיזיותרפיה ללא שיפור משמעותי..."
+        ></textarea>
+
+        <div class="actions">
+          <button id="startBtn" class="btn-primary">התחילו את הראיון ←</button>
+          <button id="skipBtn" class="btn-ghost">דלגו – פשוט שוחחו עם הרופא</button>
+        </div>
+
+        <p class="disclaimer">
+          ⚠️ שירות זה נותן <strong>הערכה בלבד</strong> ואינו מהווה ייעוץ רפואי או
+          משפטי, ואינו תחליף לוועדה הרשמית. לפני הגשה מומלץ להיוועץ בעורך דין או
+          בארגון זכויות.
+        </p>
+      </section>
+    </main>
+
+    <!-- מסך הצ'אט -->
+    <main id="chat" class="chat hidden">
+      <div id="messages" class="messages" aria-live="polite"></div>
+
+      <form id="composer" class="composer">
+        <textarea
+          id="userInput"
+          rows="1"
+          placeholder="כתבו את תשובתכם כאן..."
+          autocomplete="off"
+        ></textarea>
+        <button type="submit" id="sendBtn" class="btn-send" aria-label="שלח">
+          שלח ↑
+        </button>
+      </form>
+      <p class="mini-disclaimer">הערכה בלבד · אינו תחליף לוועדה הרשמית או לייעוץ מקצועי</p>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
