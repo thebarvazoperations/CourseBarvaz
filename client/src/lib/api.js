@@ -44,5 +44,12 @@ export const api = {
 
   getChatHistory: (analysisId) => request(`/chat/${analysisId}`),
 
+  // images = [{mediaType, data}] — base64, not stored server-side
+  analyzeMortgageDoc: (images, analysisId) =>
+    request("/mortgage-doc/analyze", {
+      method: "POST",
+      body: JSON.stringify({ images, analysisId }),
+    }),
+
   health: () => request("/health"),
 };

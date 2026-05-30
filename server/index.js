@@ -12,6 +12,7 @@ const rateLimit = require("express-rate-limit");
 const { router: analyzeRouter, purgeOldRawData } = require("./routes/analyze");
 const { router: paymentRouter, webhookHandler } = require("./routes/payment");
 const chatRouter = require("./routes/chat");
+const mortgageDocRouter = require("./routes/mortgage-doc");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,6 +27,7 @@ app.post("/api/payment/webhook", express.raw({ type: "application/json" }), webh
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 // נתיב הצ'אט מקבל תמונות (base64) — מגבלת גוף גדולה יותר, לפני ה-parser הכללי
 app.use("/api/chat", express.json({ limit: "8mb" }), chatRouter);
+app.use("/api/mortgage-doc", express.json({ limit: "8mb" }), mortgageDocRouter);
 app.use(express.json({ limit: "100kb" }));
 
 // --- Rate limiting: 10 בקשות לשעה ל-IP על נתיבי ה-API ---
@@ -37,6 +39,7 @@ const apiLimiter = rateLimit({
   message: { error: "חרגת ממכסת הבקשות. נסה שוב בעוד שעה." },
 });
 app.use("/api/analyze", apiLimiter);
+app.use("/api/mortgage-doc", apiLimiter);
 
 // --- Routes ---
 app.use("/api/analyze", analyzeRouter);

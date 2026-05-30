@@ -18,6 +18,8 @@ import {
   BarChart2,
   Percent,
   Activity,
+  Upload,
+  FileImage,
 } from "lucide-react";
 import { api } from "../lib/api.js";
 import { formatCurrency, formatPercent } from "../lib/format.js";
@@ -197,6 +199,157 @@ function BBox({ label, value, color, bold }) {
     <div className="rounded-xl bg-surface-2 p-3 text-center">
       <div className="text-xs text-muted mb-1">{label}</div>
       <div className="text-xl" style={{ color, fontWeight: bold ? 700 : 600 }}>{value}</div>
+    </div>
+  );
+}
+
+// ---- ניתוח מסמך משכנתא מבנק ----
+
+const MAX_DOC_IMAGES = 3;
+const MAX_DOC_BYTES = 4 * 1024 * 1024; // 4MB
+
+function MortgageDocAnalyzer({ analysisId }) {
+  const [open, setOpen] = useState(false);
+  const [images, setImages] = useState([]); // [{dataUrl, mediaType, base64, name}]
+  const [loading, setLoading] = useState(false);
+  const [verdict, setVerdict] = useState(null);
+  const [error, setError] = useState("");
+  const fileRef = useRef(null);
+
+  function handleFiles(e) {
+    setError("");
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    const remaining = MAX_DOC_IMAGES - images.length;
+    if (remaining <= 0) {
+      setError(`ניתן להעלות עד ${MAX_DOC_IMAGES} תמונות.`);
+      return;
+    }
+    const toAdd = files.slice(0, remaining);
+    toAdd.forEach((file) => {
+      if (!file.type.startsWith("image/")) {
+        setError("ניתן להעלות תמונות בלבד.");
+        return;
+      }
+      if (file.size > MAX_DOC_BYTES) {
+        setError("אחת התמונות גדולה מדי (מקסימום 4MB).");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        const base64 = String(dataUrl).split(",")[1];
+        setImages((prev) => [...prev, { dataUrl, mediaType: file.type, base64, name: file.name }]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removeImage(idx) {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+    setVerdict(null);
+  }
+
+  async function analyze() {
+    if (!images.length || loading) return;
+    setError("");
+    setVerdict(null);
+    setLoading(true);
+    try {
+      const payload = images.map(({ mediaType, base64 }) => ({ mediaType, data: base64 }));
+      const res = await api.analyzeMortgageDoc(payload, analysisId);
+      setVerdict(res.verdict);
+    } catch (e) {
+      setError(e.message || "שגיאה בניתוח. נסה שוב.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="card overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between p-6 hover:bg-surface-2 transition-colors"
+      >
+        <div className="flex items-center gap-2.5">
+          <FileImage size={20} className="text-primary" />
+          <h2 className="text-base font-700">בדוק הצעת בנק</h2>
+        </div>
+        {open ? <ChevronUp size={18} className="text-muted" /> : <ChevronDown size={18} className="text-muted" />}
+      </button>
+
+      {open && (
+        <div className="px-6 pb-6 space-y-4">
+          <p className="text-sm text-muted leading-relaxed border-r-2 border-primary/40 pr-3">
+            העלה צילום מסך מאתר הבנק (עברית, ערבית, או אנגלית) — הכלי יחלץ את פרטי ההצעה וישווה אותם לנתוני הניתוח שלך, בצורה ניטרלית.
+          </p>
+
+          {/* אזור העלאה */}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleFiles}
+          />
+
+          {images.length < MAX_DOC_IMAGES && (
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-surface-2 py-8 text-muted transition-colors hover:border-primary hover:text-primary"
+            >
+              <Upload size={24} />
+              <span className="text-sm">לחץ להעלאת תמונה {images.length > 0 ? `(${images.length}/${MAX_DOC_IMAGES})` : ""}</span>
+              <span className="text-xs opacity-60">PNG / JPG / WEBP · מקסימום 4MB לתמונה</span>
+            </button>
+          )}
+
+          {/* תצוגות מקדימות */}
+          {images.length > 0 && (
+            <div className="flex flex-wrap gap-3">
+              {images.map((img, idx) => (
+                <div key={idx} className="relative">
+                  <img
+                    src={img.dataUrl}
+                    alt={img.name}
+                    className="h-24 w-24 rounded-xl object-cover border border-border"
+                  />
+                  <button
+                    onClick={() => removeImage(idx)}
+                    className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-surface border border-border text-muted hover:text-danger text-xs"
+                    aria-label="הסר תמונה"
+                  >
+                    <XCircle size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {error && <p className="text-xs text-danger">{error}</p>}
+
+          {images.length > 0 && (
+            <button
+              onClick={analyze}
+              disabled={loading}
+              className="btn-primary gap-2 text-sm disabled:opacity-50"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <FileImage size={16} />}
+              {loading ? "מנתח..." : "נתח מסמך"}
+            </button>
+          )}
+
+          {/* תוצאה */}
+          {verdict && (
+            <div className="rounded-2xl bg-surface-2 border border-border p-5 space-y-2">
+              <div className="text-xs text-muted mb-1 font-600 uppercase tracking-wide">ניתוח הצעת הבנק</div>
+              <div className="text-sm text-text leading-relaxed whitespace-pre-wrap">{verdict}</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -487,6 +640,9 @@ export default function Report() {
             ))}
           </div>
         </Section>
+
+        {/* ---- בדוק הצעת בנק ---- */}
+        <MortgageDocAnalyzer analysisId={analysisId} />
 
         {/* ---- Disclaimer ---- */}
         <div className="rounded-xl border border-border/50 bg-surface p-5 text-center space-y-1.5">
