@@ -65,7 +65,7 @@ function buildPrompt(profile, reportData) {
 - החזרי הלוואות קיימים: ₪${profile.existingLoans.toLocaleString("he-IL")}
 - גיל: ${profile.age} | תקופה: ${profile.termYears} שנים
 - רמת ודאות (0=מקסימלית, 100=מוכן לסיכון): ${profile.riskTolerance}
-- דירוג אשראי (0-100): ${profile.creditScore || 70}
+- דירוג אשראי (300-850): ${profile.creditScore || 650}
 
 נתונים מחושבים:
 ${JSON.stringify({
@@ -77,11 +77,13 @@ ${JSON.stringify({
   rateOffer: reportData.rateOffer,
 }, null, 2)}
 
+חשוב: כל ערך ב-JSON חייב להיות מחרוזת (string) פשוטה — לא אובייקט, לא מערך בתוך שדה טקסט.
+
 החזר JSON בלבד במבנה הזה (אסור לחרוג ממנו):
 {
   "intro": "משפט-שניים ניטרליים על הפרופיל — ללא שיפוטיות",
   "capacityNote": "מה מספר כושר ההחזר — עובדות בלבד",
-  "mixesNote": "שיקולים לטובת ונגד כל תמהיל — בלי להכריע. חובה: לכל תמהיל שיקול אחד בעד ואחד נגד",
+  "mixesNote": "פסקה אחת רציפה עם שיקולים לטובת ונגד כל תמהיל — בלי להכריע. חובה: לכל תמהיל שיקול אחד בעד ואחד נגד. הכל בטקסט רציף, לא אובייקט.",
   "sensitivityNote": "מה מראה ניתוח הרגישות — עובדות, לא המלצות",
   "benchmarkNote": "הסבר הטווח — מה ריאלי לפרופיל זה, ללא הכרעה",
   "refinanceNote": "ניתוח נתוני המיחזור בלבד (או null)",

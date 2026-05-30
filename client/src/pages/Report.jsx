@@ -279,6 +279,9 @@ export default function Report() {
   const { data, narrative } = report;
   const { capacity, summary, mixes, sensitivity, benchmark, refinance, amortization, ratios, rateOffer } = data;
 
+  // Guard: AI occasionally returns objects instead of strings for note fields
+  const note = (v) => (typeof v === "string" ? v : null);
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 pb-32">
 
@@ -349,7 +352,7 @@ export default function Report() {
         )}
 
         {/* ---- כושר החזר ---- */}
-        <Section id="capacity" title="כושר החזר" icon={Wallet} note={narrative?.capacityNote} terms={["dti", "equity"]} defaultOpen>
+        <Section id="capacity" title="כושר החזר" icon={Wallet} note={note(narrative?.capacityNote)} terms={["dti", "equity"]} defaultOpen>
           <div className="flex flex-wrap items-center gap-3">
             <div className="rounded-xl bg-surface-2 px-5 py-3">
               <div className="text-xs text-muted">החזר מקסימלי (כלל 35%)</div>
@@ -365,7 +368,7 @@ export default function Report() {
         </Section>
 
         {/* ---- תמהילים + השוואת עלויות ---- */}
-        <Section id="mixes" title="השוואת תמהילים" icon={PieChart} note={narrative?.mixesNote} terms={["mix", "prime", "fixedUnlinked"]}>
+        <Section id="mixes" title="השוואת תמהילים" icon={PieChart} note={note(narrative?.mixesNote)} terms={["mix", "prime", "fixedUnlinked"]}>
           <MixTable mixes={mixes} />
           <div className="mt-4">
             <p className="text-xs text-muted mb-3">השוואת עלות כוללת לפי תמהיל</p>
@@ -374,7 +377,7 @@ export default function Report() {
         </Section>
 
         {/* ---- ניתוח רגישות ---- */}
-        <Section id="sensitivity" title="ניתוח רגישות לריבית" icon={Activity} note={narrative?.sensitivityNote} terms={["sensitivity", "prime"]}>
+        <Section id="sensitivity" title="ניתוח רגישות לריבית" icon={Activity} note={note(narrative?.sensitivityNote)} terms={["sensitivity", "prime"]}>
           <SensitivityChart sensitivity={sensitivity} />
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm border-collapse">
@@ -414,7 +417,7 @@ export default function Report() {
         )}
 
         {/* ---- Benchmark ריבית ---- */}
-        <Section id="benchmark" title="Benchmark ריבית" icon={Target} note={narrative?.benchmarkNote} terms={["benchmark", "bps"]}>
+        <Section id="benchmark" title="Benchmark ריבית" icon={Target} note={note(narrative?.benchmarkNote)} terms={["benchmark", "bps"]}>
           <BenchmarkBar benchmark={benchmark} />
         </Section>
 
@@ -434,7 +437,7 @@ export default function Report() {
 
         {/* ---- רפייננס ---- */}
         {refinance && (
-          <Section id="refinance" title="ניתוח מיחזור (רפייננס)" icon={RefreshCw} note={narrative?.refinanceNote} terms={["refinance", "breakEven", "earlyRepayment"]}>
+          <Section id="refinance" title="ניתוח מיחזור (רפייננס)" icon={RefreshCw} note={note(narrative?.refinanceNote)} terms={["refinance", "breakEven", "earlyRepayment"]}>
             <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
               <BBox label="החזר נוכחי" value={formatCurrency(refinance.currentMonthly)} color="#9ca3af" />
               <BBox label="החזר לאחר מיחזור" value={formatCurrency(refinance.newMonthly)} color="#6366f1" />
