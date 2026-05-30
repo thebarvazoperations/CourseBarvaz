@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
+  { to: "/", label: "בית" },
   { to: "/faq", label: "שאלות נפוצות" },
   { to: "/about", label: "אודות" },
   { to: "/contact", label: "צור קשר" },

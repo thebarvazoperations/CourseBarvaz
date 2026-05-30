@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Home, RefreshCw, Loader2 } from "lucide-react";
 import { api } from "../lib/api.js";
-// הדוח מופק ישירות — ללא שלב תשלום
 import { formatInputLive, parseNumberInput, formatCurrency } from "../lib/format.js";
+import Term from "../components/Term.jsx";
 
 const STEPS = ["פרטי המשכנתא", "פרופיל פיננסי", "העדפות"];
 
@@ -18,7 +18,7 @@ const initialState = {
   age: "",
   termYears: 25,
   riskTolerance: 50,
-  creditScore: 70,
+  creditScore: "",
   liquidAssets: "",
 };
 
@@ -112,14 +112,12 @@ export default function Form() {
       ? "איזון בין ודאות לעלות"
       : "מוכן לסיכון בשביל ריבית נמוכה";
 
+  const creditScore = Number(data.creditScore);
   const creditLabel =
-    data.creditScore >= 85
-      ? "מצוין"
-      : data.creditScore >= 70
-      ? "טוב"
-      : data.creditScore >= 50
-      ? "בינוני"
-      : "חלש";
+    !creditScore ? "" :
+    creditScore >= 750 ? "מצוין" :
+    creditScore >= 650 ? "טוב" :
+    creditScore >= 500 ? "בינוני" : "חלש";
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12">
@@ -195,7 +193,7 @@ export default function Form() {
         {/* שלב 2 */}
         {step === 1 && (
           <div className="space-y-5">
-            <h2 className="text-h3 font-600">פרופיל פיננסי</h2>
+            <h2 className="text-h3 font-600">פרופיל <Term id="financial">פיננסי</Term></h2>
             <MoneyInput
               label="הכנסה חודשית נטו של משק הבית"
               value={data.monthlyIncome}
@@ -237,24 +235,25 @@ export default function Form() {
               </div>
             </div>
             <div>
-              <label className="label">
-                דירוג אשראי:{" "}
-                <span className="text-primary font-700">{creditLabel}</span>
+              <label htmlFor="credit-score" className="label">
+                דירוג אשראי (300–850)
+                {creditLabel && (
+                  <span className="mr-2 text-primary font-700">— {creditLabel}</span>
+                )}
               </label>
               <input
-                type="range"
-                min="0"
-                max="100"
+                id="credit-score"
+                className="input"
+                inputMode="numeric"
                 value={data.creditScore}
-                onChange={(e) => set("creditScore")(Number(e.target.value))}
-                className="w-full"
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 3);
+                  set("creditScore")(v);
+                }}
+                placeholder="700"
               />
-              <div className="flex justify-between text-xs text-muted">
-                <span>חלש</span>
-                <span>מצוין</span>
-              </div>
               <p className="mt-1 text-xs text-muted">
-                לא בטוח? אפשר לבדוק חינם בדו"ח נתוני אשראי של בנק ישראל.
+                לא בטוח מה הציון שלך? אפשר לבדוק חינם בדו"ח נתוני אשראי של בנק ישראל (300=חלש, 850=מצוין).
               </p>
             </div>
             <MoneyInput

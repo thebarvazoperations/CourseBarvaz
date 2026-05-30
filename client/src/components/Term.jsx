@@ -1,25 +1,36 @@
 import { useState, useRef, useEffect } from "react";
 import { GLOSSARY } from "../lib/glossary.js";
 
-/**
- * מונח פיננסי מסומן — מודגש בצבע, ובמגע/ריחוף מציג הסבר קצר.
- * שימוש: <Term id="prime" /> או <Term id="ltv">LTV מותאם</Term>
- */
 export default function Term({ id, children }) {
   const entry = GLOSSARY[id];
   const [open, setOpen] = useState(false);
   const [above, setAbove] = useState(false);
+  const [xOffset, setXOffset] = useState(0);
   const ref = useRef(null);
 
   useEffect(() => {
     if (open && ref.current) {
       const rect = ref.current.getBoundingClientRect();
-      // אם אין מספיק מקום למטה — פותחים למעלה
       setAbove(rect.bottom + 140 > window.innerHeight);
+
+      // Clamp tooltip horizontally so it never leaves the screen
+      const tooltipW = 240; // w-60
+      const margin = 8;
+      const cx = rect.left + rect.width / 2;
+      const leftEdge = cx - tooltipW / 2;
+      const rightEdge = cx + tooltipW / 2;
+
+      if (leftEdge < margin) {
+        setXOffset(margin - leftEdge);
+      } else if (rightEdge > window.innerWidth - margin) {
+        setXOffset(window.innerWidth - margin - rightEdge);
+      } else {
+        setXOffset(0);
+      }
     }
   }, [open]);
 
-  // סגירה בלחיצה מחוץ (למובייל)
+  // Close on outside click (mobile)
   useEffect(() => {
     if (!open) return;
     const handler = (e) => {
@@ -52,10 +63,10 @@ export default function Term({ id, children }) {
       {open && (
         <span
           role="tooltip"
-          className={`absolute z-[60] right-1/2 translate-x-1/2 w-60 rounded-xl border border-border bg-surface-2 p-3 text-xs leading-relaxed text-text shadow-glow ${
+          className={`absolute z-[60] left-1/2 w-60 rounded-xl border border-border bg-surface-2 p-3 text-xs leading-relaxed text-text shadow-glow ${
             above ? "bottom-full mb-2" : "top-full mt-2"
           }`}
-          style={{ fontWeight: 400 }}
+          style={{ fontWeight: 400, transform: `translateX(calc(-50% + ${xOffset}px))` }}
         >
           <span className="block font-700 text-primary mb-1">{entry.label}</span>
           {entry.def}

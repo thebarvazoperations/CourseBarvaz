@@ -318,7 +318,7 @@ export default function Report() {
         {/* ---- יחסים פיננסיים ---- */}
         {ratios && (
           <div className="card p-5 space-y-4">
-            <h2 className="text-sm font-700 text-muted uppercase tracking-wide">יחסים פיננסיים</h2>
+            <h2 className="text-sm font-700 text-muted uppercase tracking-wide">יחסים <Term id="financial">פיננסיים</Term></h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <GaugeBar
                 label="LTV — יחס הלוואה לשווי נכס"

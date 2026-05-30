@@ -235,12 +235,12 @@ function computeRatios(profile, balancedMonthly) {
 }
 
 /**
- * תווית מילולית לדירוג אשראי (0-100).
+ * תווית מילולית לדירוג אשראי (300-850, סקאלת Experian ישראל).
  */
 function creditTier(score) {
-  if (score >= 85) return { label: "מצוין", color: "#10b981" };
-  if (score >= 70) return { label: "טוב", color: "#6366f1" };
-  if (score >= 50) return { label: "בינוני", color: "#f59e0b" };
+  if (score >= 750) return { label: "מצוין", color: "#10b981" };
+  if (score >= 650) return { label: "טוב", color: "#6366f1" };
+  if (score >= 500) return { label: "בינוני", color: "#f59e0b" };
   return { label: "חלש", color: "#ef4444" };
 }
 
@@ -259,16 +259,16 @@ function computeRateOffer(profile, balancedRate, ratios) {
   const base = balancedRate; // נקודת המוצא הניטרלית
   const adjustments = [];
 
-  // --- דירוג אשראי --- (טווח השפעה כ-0.6%)
+  // --- דירוג אשראי --- (סקאלת 300-850; 650 = בסיס ניטרלי)
   const credit = creditTier(profile.creditScore);
-  // ככל שהדירוג גבוה יותר, הריבית נמוכה יותר. 85+ => -0.30%, 50- => +0.30%
-  const creditBps = Math.round((70 - profile.creditScore) * 0.6); // לדוגמה score=100 => -18bps
+  // 850 => ~-24bps, 650 => 0, 300 => ~+42bps
+  const creditBps = Math.round((650 - profile.creditScore) * 0.12);
   adjustments.push({
     factor: "דירוג אשראי",
-    detail: `${credit.label} (${profile.creditScore}/100)`,
+    detail: `${credit.label} (${profile.creditScore}/850)`,
     bps: creditBps,
     insist:
-      profile.creditScore >= 70
+      profile.creditScore >= 650
         ? "הצג דו\"ח נתוני אשראי עדכני — דירוג גבוה הוא קלף מיקוח חזק להורדת ריבית."
         : "שפר דירוג לפני הגשה: סגור מסגרות אשראי לא מנוצלות והסר חריגות.",
     positive: creditBps <= 0,
