@@ -8,9 +8,9 @@ import Report from "./pages/Report.jsx";
 import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import FAQ from "./pages/FAQ.jsx";
-import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import PrivacyPolicy from "./pages/PersonalData.jsx";
 import TermsOfService from "./pages/TermsOfService.jsx";
-import CookiePolicy from "./pages/CookiePolicy.jsx";
+import CookiePolicy from "./pages/WebStorage.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 export default function App() {
