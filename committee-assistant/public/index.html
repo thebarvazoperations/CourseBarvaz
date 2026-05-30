@@ -3,72 +3,331 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>סימולטור ועדה רפואית · ביטוח לאומי</title>
+    <title>וֶעדה AI · סימולטור ועדה רפואית של הביטוח הלאומי</title>
     <meta
       name="description"
-      content="רופא AI שמראיין אתכם לקראת הוועדה הרפואית של הביטוח הלאומי, מעריך אחוזי נכות וקצבה צפויה, ונותן טיפים."
+      content="התכוננו לוועדה הרפואית של הביטוח הלאומי עם רופא AI: ראיון מותאם אישית, הערכת אחוזי נכות וקצבה צפויה, וטיפים מה לומר כדי לקבל את המגיע לכם."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div class="brand">
-        <span class="logo">🩺</span>
-        <div>
-          <h1>סימולטור ועדה רפואית</h1>
-          <p class="sub">התכוננו לוועדה הרפואית של הביטוח הלאומי</p>
-        </div>
+    <!-- ===================== NAVBAR ===================== -->
+    <header class="nav" id="nav">
+      <div class="container nav-inner">
+        <a href="#top" class="brand">
+          <span class="brand-mark">🩺</span>
+          <span class="brand-name">וֶעדה<span class="brand-ai">AI</span></span>
+        </a>
+        <nav class="nav-links">
+          <a href="#how">איך זה עובד</a>
+          <a href="#features">יתרונות</a>
+          <a href="#stats">נתונים</a>
+          <a href="#faq">שאלות נפוצות</a>
+        </nav>
+        <button class="btn btn-primary nav-cta" data-open-sim>
+          התחילו עכשיו
+        </button>
       </div>
     </header>
 
-    <!-- מסך פתיחה: הזנת הדוח הרפואי -->
-    <main id="intro" class="intro">
-      <section class="card">
-        <h2>ברוכים הבאים 👋</h2>
-        <p>
-          הדביקו כאן את הדוח הרפואי שלכם מהביטוח הלאומי (או סיכום מחלה / אבחנות),
-          ו<strong>ד״ר אבי</strong> – הרופא הווירטואלי – יראיין אתכם בדיוק כמו
-          בוועדה הרפואית. בסוף תקבלו הערכת אחוזי נכות, קצבה צפויה, וטיפים כיצד
-          להציג את מצבכם נכון.
-        </p>
+    <main id="top">
+      <!-- ===================== HERO ===================== -->
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <span class="pill">🤖 מבוסס בינה מלאכותית</span>
+            <h1>
+              תתכוננו לוועדה הרפואית<br />
+              <span class="grad">בלי הפתעות</span>
+            </h1>
+            <p class="lead">
+              מזינים את הדוח הרפואי מהביטוח הלאומי, ורופא AI מראיין אתכם בדיוק
+              כמו בוועדה. בסוף תקבלו הערכת <strong>אחוזי נכות</strong>,
+              <strong>קצבה צפויה</strong>, ובדיוק מה לומר כדי לקבל את המגיע לכם.
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary btn-lg" data-open-sim>
+                התחילו את הסימולציה ←
+              </button>
+              <a href="#how" class="btn btn-ghost btn-lg">איך זה עובד?</a>
+            </div>
+            <div class="hero-trust">
+              <span>✓ חינם להתנסות</span>
+              <span>✓ ללא הרשמה</span>
+              <span>✓ פרטי ומאובטח</span>
+            </div>
+          </div>
 
-        <label class="field-label" for="reportInput">הדוח הרפואי / האבחנות שלי:</label>
-        <textarea
-          id="reportInput"
-          rows="9"
-          placeholder="לדוגמה: סובל מכאבי גב כרוניים (פריצת דיסק L4-L5), סוכרת מאוזנת חלקית, ודיכאון בטיפול תרופתי. עברתי פיזיותרפיה ללא שיפור משמעותי..."
-        ></textarea>
-
-        <div class="actions">
-          <button id="startBtn" class="btn-primary">התחילו את הראיון ←</button>
-          <button id="skipBtn" class="btn-ghost">דלגו – פשוט שוחחו עם הרופא</button>
+          <!-- כרטיס תצוגה מקדימה של הצ'אט -->
+          <div class="hero-visual">
+            <div class="chat-preview">
+              <div class="cp-head">
+                <span class="cp-avatar">🩺</span>
+                <div>
+                  <strong>ד״ר אבי</strong>
+                  <span class="cp-status">● מחובר · רופא הוועדה</span>
+                </div>
+              </div>
+              <div class="cp-body">
+                <div class="cp-msg bot">שלום! קראתי את הדוח. בוא נתחיל — כמה שעות ביום הכאב מפריע לך בתפקוד?</div>
+                <div class="cp-msg user">רוב היום, קשה לי לשבת יותר מ-20 דקות.</div>
+                <div class="cp-msg bot">מובן. והאם אתה נעזר במישהו בפעולות יומיומיות כמו לבישה או קניות?</div>
+                <div class="cp-msg final">
+                  <strong>📊 הערכה: 40%-55% נכות</strong><br />טווח קצבה מוערך + טיפים לוועדה
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <p class="disclaimer">
-          ⚠️ שירות זה נותן <strong>הערכה בלבד</strong> ואינו מהווה ייעוץ רפואי או
-          משפטי, ואינו תחליף לוועדה הרשמית. לפני הגשה מומלץ להיוועץ בעורך דין או
-          בארגון זכויות.
-        </p>
+      <!-- ===================== LOGOS / SUBHEAD ===================== -->
+      <section class="strip">
+        <div class="container strip-inner">
+          <span>נכות כללית</span>
+          <span>נכות מעבודה</span>
+          <span>קצבת ניידות</span>
+          <span>גמלת סיעוד</span>
+          <span>זכויות נלוות</span>
+        </div>
+      </section>
+
+      <!-- ===================== HOW IT WORKS ===================== -->
+      <section class="section" id="how">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow">התהליך</span>
+            <h2>שלושה צעדים פשוטים</h2>
+            <p>מהדוח הרפואי ועד להערכה מלאה — תוך דקות.</p>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">1</div>
+              <h3>מזינים את הדוח</h3>
+              <p>
+                מדביקים את הדוח הרפואי / סיכום המחלה מהביטוח הלאומי. הרופא קורא
+                ומבין את האבחנות.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">2</div>
+              <h3>עוברים ראיון</h3>
+              <p>
+                הרופא ה-AI שואל את אותן שאלות שיישאלו בוועדה — תפקוד, כאב,
+                ניידות ויכולת עבודה.
+              </p>
+            </div>
+            <div class="step">
+              <div class="step-num">3</div>
+              <h3>מקבלים הערכה</h3>
+              <p>
+                אחוזי נכות צפויים, טווח קצבה, וטיפים מדויקים מה לומר ומה להביא
+                כדי לקבל את המגיע.
+              </p>
+            </div>
+          </div>
+          <div class="center">
+            <button class="btn btn-primary btn-lg" data-open-sim>
+              בואו נתחיל ←
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== FEATURES ===================== -->
+      <section class="section alt" id="features">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow">למה זה עוזר</span>
+            <h2>הכלי שמכין אתכם באמת</h2>
+            <p>הרבה אנשים מגיעים לוועדה לא מוכנים ומקבלים פחות מהמגיע להם. זה משנה את זה.</p>
+          </div>
+          <div class="cards">
+            <article class="feat">
+              <div class="feat-ic">🎯</div>
+              <h3>ראיון מותאם אישית</h3>
+              <p>השאלות מותאמות לליקויים הספציפיים שלכם — בדיוק כמו רופא הוועדה.</p>
+            </article>
+            <article class="feat">
+              <div class="feat-ic">📊</div>
+              <h3>הערכת אחוזים</h3>
+              <p>טווח אחוזי נכות לפי סעיפי הליקוי, כולל הסבר על חישוב משוקלל.</p>
+            </article>
+            <article class="feat">
+              <div class="feat-ic">💰</div>
+              <h3>קצבה צפויה</h3>
+              <p>הבחנה בין נכות כללית לנכות מעבודה והערכת טווח הסכומים.</p>
+            </article>
+            <article class="feat">
+              <div class="feat-ic">💬</div>
+              <h3>מה לומר בוועדה</h3>
+              <p>טיפים פרקטיים איך להציג את מצבכם בכנות — בלי להמעיט בערך המגבלה.</p>
+            </article>
+            <article class="feat">
+              <div class="feat-ic">📄</div>
+              <h3>אילו מסמכים להביא</h3>
+              <p>רשימת מסמכים ואסמכתאות שיחזקו את התיק שלכם מול הוועדה.</p>
+            </article>
+            <article class="feat">
+              <div class="feat-ic">🔒</div>
+              <h3>פרטי ומאובטח</h3>
+              <p>השיחה מתבצעת בדפדפן מול שרת מאובטח. ללא הרשמה וללא שמירת זהות.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== STATS ===================== -->
+      <section class="section" id="stats">
+        <div class="container stats">
+          <div class="stat">
+            <strong>5-10</strong>
+            <span>שאלות בראיון מותאם אישית</span>
+          </div>
+          <div class="stat">
+            <strong>~3 דק׳</strong>
+            <span>עד הערכה מלאה</span>
+          </div>
+          <div class="stat">
+            <strong>100%</strong>
+            <span>בעברית, מותאם לביטוח הלאומי</span>
+          </div>
+          <div class="stat">
+            <strong>0 ₪</strong>
+            <span>להתנסות ראשונית</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== FAQ ===================== -->
+      <section class="section alt" id="faq">
+        <div class="container narrow">
+          <div class="section-head">
+            <span class="eyebrow">שאלות נפוצות</span>
+            <h2>כל מה שרציתם לדעת</h2>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>האם זה תחליף לוועדה הרשמית?</summary>
+              <p>
+                לא. זהו כלי הכנה שנותן הערכה בלבד. הקביעה הרשמית נעשית רק בוועדה
+                הרפואית של המוסד לביטוח לאומי.
+              </p>
+            </details>
+            <details>
+              <summary>איך נקבעת הערכת אחוזי הנכות?</summary>
+              <p>
+                ההערכה מבוססת על "רשימת הליקויים" (התוספת לתקנות הביטוח הלאומי)
+                ועל המידע שאתם מספקים בראיון. זהו אומדן מקורב ולא קביעה מחייבת.
+              </p>
+            </details>
+            <details>
+              <summary>האם המידע שלי נשמר?</summary>
+              <p>
+                השיחה מתנהלת מול השרת לצורך מתן התשובות בלבד. אין צורך בהרשמה
+                ואיננו מבקשים פרטים מזהים.
+              </p>
+            </details>
+            <details>
+              <summary>הסימולטור מעודד "לנפח" את המצב?</summary>
+              <p>
+                ממש לא. ההמלצה היא תמיד לומר אמת בלבד — אבל להציג את המצב במלואו
+                ולא להמעיט בערך הכאב והמגבלה, כפי שרבים נוטים לעשות בלחץ.
+              </p>
+            </details>
+            <details>
+              <summary>זה מחליף עורך דין או ארגון זכויות?</summary>
+              <p>
+                לא. לפני הגשה או ערעור מומלץ להיוועץ באיש מקצוע. הכלי נועד לעזור
+                לכם להגיע מוכנים ולהבין את הזכויות שלכם.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== CTA ===================== -->
+      <section class="cta-band">
+        <div class="container cta-inner">
+          <h2>מגיע לכם להגיע מוכנים</h2>
+          <p>התחילו את הסימולציה עכשיו — חינם, ללא הרשמה, תוך דקות.</p>
+          <button class="btn btn-white btn-lg" data-open-sim>
+            התחילו את הסימולציה ←
+          </button>
+        </div>
       </section>
     </main>
 
-    <!-- מסך הצ'אט -->
-    <main id="chat" class="chat hidden">
-      <div id="messages" class="messages" aria-live="polite"></div>
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <span class="brand-mark">🩺</span>
+          <span class="brand-name">וֶעדה<span class="brand-ai">AI</span></span>
+          <p>הכנה חכמה לוועדה הרפואית של הביטוח הלאומי.</p>
+        </div>
+        <div class="footer-note">
+          ⚠️ שירות זה נותן הערכה בלבד ואינו מהווה ייעוץ רפואי או משפטי, ואינו
+          תחליף לוועדה הרשמית. לפני הגשה מומלץ להיוועץ בעורך דין או בארגון זכויות.
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        © <span id="year"></span> וֶעדה AI · נבנה כדי לעזור לכם לקבל את המגיע לכם
+      </div>
+    </footer>
 
-      <form id="composer" class="composer">
-        <textarea
-          id="userInput"
-          rows="1"
-          placeholder="כתבו את תשובתכם כאן..."
-          autocomplete="off"
-        ></textarea>
-        <button type="submit" id="sendBtn" class="btn-send" aria-label="שלח">
-          שלח ↑
-        </button>
-      </form>
-      <p class="mini-disclaimer">הערכה בלבד · אינו תחליף לוועדה הרשמית או לייעוץ מקצועי</p>
-    </main>
+    <!-- ===================== SIMULATOR MODAL ===================== -->
+    <div class="modal" id="simModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-sim></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-label="סימולטור ועדה רפואית">
+        <div class="modal-head">
+          <div class="modal-title">
+            <span class="cp-avatar">🩺</span>
+            <div>
+              <strong>ד״ר אבי</strong>
+              <span class="cp-status">● רופא הוועדה הווירטואלי</span>
+            </div>
+          </div>
+          <button class="modal-close" data-close-sim aria-label="סגור">✕</button>
+        </div>
+
+        <!-- מסך הזנת דוח -->
+        <div class="sim-intro" id="simIntro">
+          <h3>נתחיל מהדוח הרפואי שלכם 📋</h3>
+          <p>הדביקו כאן את הדוח הרפואי / סיכום המחלה / האבחנות מהביטוח הלאומי:</p>
+          <textarea
+            id="reportInput"
+            rows="7"
+            placeholder="לדוגמה: כאבי גב כרוניים (פריצת דיסק L4-L5), סוכרת מאוזנת חלקית, ודיכאון בטיפול תרופתי. עברתי פיזיותרפיה ללא שיפור משמעותי..."
+          ></textarea>
+          <div class="sim-intro-actions">
+            <button id="startBtn" class="btn btn-primary">התחילו את הראיון ←</button>
+            <button id="skipBtn" class="btn btn-ghost">דלגו — פשוט שוחחו עם הרופא</button>
+          </div>
+        </div>
+
+        <!-- צ'אט -->
+        <div class="sim-chat hidden" id="simChat">
+          <div id="messages" class="messages" aria-live="polite"></div>
+          <form id="composer" class="composer">
+            <textarea
+              id="userInput"
+              rows="1"
+              placeholder="כתבו את תשובתכם כאן..."
+              autocomplete="off"
+            ></textarea>
+            <button type="submit" id="sendBtn" class="btn-send" aria-label="שלח">↑</button>
+          </form>
+          <p class="mini-disclaimer">הערכה בלבד · אינו תחליף לוועדה הרשמית או לייעוץ מקצועי</p>
+        </div>
+      </div>
+    </div>
 
     <script src="app.js"></script>
   </body>

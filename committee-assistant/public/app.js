@@ -1,6 +1,14 @@
-// סימולטור ועדה רפואית - לוגיקת צד-לקוח
-const introEl = document.getElementById("intro");
-const chatEl = document.getElementById("chat");
+// ============================================================
+// וֶעדה AI — לוגיקת צד-לקוח: שליטה במודאל + צ'אט מול הרופא
+// ============================================================
+
+// שנה בפוטר
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// ----- אלמנטים -----
+const modal = document.getElementById("simModal");
+const simIntro = document.getElementById("simIntro");
+const simChat = document.getElementById("simChat");
 const messagesEl = document.getElementById("messages");
 const composerEl = document.getElementById("composer");
 const userInput = document.getElementById("userInput");
@@ -9,11 +17,41 @@ const startBtn = document.getElementById("startBtn");
 const skipBtn = document.getElementById("skipBtn");
 const reportInput = document.getElementById("reportInput");
 
-/** היסטוריית השיחה שנשלחת לשרת (role/content) */
+/** היסטוריית השיחה הנשלחת לשרת */
 let history = [];
 let busy = false;
+let started = false;
 
-// ----- מעבר ממסך הפתיחה לצ'אט -----
+// ============================================================
+// פתיחה / סגירה של המודאל
+// ============================================================
+function openModal() {
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  // פוקוס על השדה הרלוונטי
+  setTimeout(() => (started ? userInput : reportInput)?.focus(), 50);
+}
+
+function closeModal() {
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+document.querySelectorAll("[data-open-sim]").forEach((b) =>
+  b.addEventListener("click", openModal)
+);
+document.querySelectorAll("[data-close-sim]").forEach((b) =>
+  b.addEventListener("click", closeModal)
+);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+});
+
+// ============================================================
+// התחלת השיחה
+// ============================================================
 startBtn.addEventListener("click", () => {
   const report = reportInput.value.trim();
   if (!report) {
@@ -33,13 +71,16 @@ skipBtn.addEventListener("click", () => {
 });
 
 function beginChat(firstUserMessage) {
-  introEl.classList.add("hidden");
-  chatEl.classList.remove("hidden");
+  started = true;
+  simIntro.classList.add("hidden");
+  simChat.classList.remove("hidden");
   userInput.focus();
   sendMessage(firstUserMessage);
 }
 
-// ----- שליחת הודעה -----
+// ============================================================
+// שליחת הודעות
+// ============================================================
 composerEl.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = userInput.value.trim();
@@ -49,7 +90,6 @@ composerEl.addEventListener("submit", (e) => {
   sendMessage(text);
 });
 
-// Enter לשליחה, Shift+Enter לשורה חדשה
 userInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -59,7 +99,7 @@ userInput.addEventListener("keydown", (e) => {
 userInput.addEventListener("input", autosize);
 function autosize() {
   userInput.style.height = "auto";
-  userInput.style.height = Math.min(userInput.scrollHeight, 160) + "px";
+  userInput.style.height = Math.min(userInput.scrollHeight, 140) + "px";
 }
 
 async function sendMessage(text) {
@@ -79,7 +119,6 @@ async function sendMessage(text) {
 
     if (!res.ok) {
       addError(data.error || "אירעה שגיאה. נסו שוב.");
-      // מסירים את ההודעה האחרונה כדי לאפשר ניסיון חוזר
       history.pop();
       return;
     }
@@ -101,7 +140,9 @@ function isFinal(text) {
   return text.includes("===הערכה סופית===");
 }
 
-// ----- עזרי UI -----
+// ============================================================
+// עזרי UI
+// ============================================================
 function addBubble(text, cls) {
   const div = document.createElement("div");
   div.className = "msg " + cls;
@@ -129,7 +170,6 @@ function addError(msg) {
   scrollDown();
 }
 
-// המרת **טקסט** ל-bold ושמירה על שורות
 function formatText(text) {
   const escaped = text
     .replace(/&/g, "&amp;")
