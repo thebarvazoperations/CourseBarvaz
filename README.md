@@ -89,6 +89,49 @@ cash, debt, earnings); merge it on top of a curated CSV for the event fields.
 Roadmap for real feeds: **EDINET** (Japan filings) and **BSE/NSE** bulk
 disclosures (India promoter holdings & pledges).
 
+## Does the method work? — historical backtest
+
+`python -m coursebarvaz.backtest` scores a curated set of **real completed and
+failed** control-concentration events (Japanese parent-subsidiary buyouts, Indian
+promoter delistings) — see [`data/historical_events.csv`](data/historical_events.csv)
+and [`data/HISTORICAL_SOURCES.md`](data/HISTORICAL_SOURCES.md).
+
+What the real events say (9 events, 7 completed → 78% win rate):
+
+- **The payoff when it triggers is large:** median early-entry premium **~+57%**.
+- **Entering early is the whole edge:** on deals reporting both premiums, early
+  positioners captured **+47%** vs **+31%** for news-day buyers — a **+16pp**
+  edge. The cleanest case is Hitachi Metals: **15.1%** on the news vs **74.5%**
+  for someone positioned before the speculation.
+- **But it's slow and uncertain:** holding-to-close ranged from ~2 months
+  (Taisho) to ~15–18 months (Shinko, Hitachi Metals), and real deals fail
+  (Vedanta, Linde delistings both collapsed).
+
+**Honest verdict:** the mechanism is real and the early-positioning premium is
+large and repeatable *when an event occurs* — and getting in early clearly beats
+reacting to the announcement. **What this backtest cannot tell you** is the
+blended per-dollar-year return, because it only contains *announced* deals — it
+omits the setups that never triggered (dead money). Establishing a true
+expectancy needs a live universe tracked over time (below). Treat the annualized
+figures as illustrative only.
+
+## Scaling to hundreds of live candidates
+
+The hosted sandbox blocks financial-data feeds, so the live pull is a script you
+run **on your own machine**: [`scripts/build_universe.py`](scripts/build_universe.py)
+fetches market fields via yfinance for a ticker list and merges your event-field
+overrides (promoter %, pledges, parent links from screener.in / BSE-NSE / EDINET)
+into a scanner-ready CSV.
+
+```bash
+pip install yfinance
+python scripts/build_universe.py --tickers tickers.txt --overrides overrides.csv --out data/universe.csv
+python -m coursebarvaz --data data/universe.csv --show-rejected
+```
+
+Run it periodically and archive each snapshot: that stream of flagged setups is
+exactly the denominator the backtest is missing.
+
 ## Architecture
 
 ```

@@ -1,0 +1,10 @@
+event_id,ticker,name,market,category,counterparty,announce_date,resolve_date,outcome,offer_price,premium_1d_pct,premium_early_pct,holding_days,notes
+JP-DOCOMO-2020,9437.T,NTT Docomo,JP,parent_buyout,NTT (parent),2020-09-29,2020-12-25,completed,3900,0.405,0.405,87,Parent NTT bought out minority; ~40.5% premium
+JP-HMETALS-2021,5486.T,Hitachi Metals,JP,parent_buyout,Bain consortium (Hitachi 53.38%),2021-04-28,2022-10-26,completed,2181,0.151,0.745,546,15.1% 1-day BUT 74.5% vs pre-speculation (Oct-2019). Early entry decisive.
+JP-HTRANSPORT-2022,9086.T,Hitachi Transport System,JP,parent_buyout,KKR (Hitachi 40%),2022-04-28,2022-11-30,completed,8913,,1.660,216,166% premium to 12-month average close; deeply depressed pre-deal
+JP-SHINKO-2023,6967.T,Shinko Electric Industries,JP,parent_buyout,JIC consortium (Fujitsu 50.02%),2023-12-12,2025-03-18,completed,5920,0.130,0.189,462,Long regulatory delay (~15 months); modest premium
+JP-TAISHO-2023,4581.T,Taisho Pharmaceutical,JP,mbo,Uehara family MBO,2023-11-24,2024-01-16,completed,8620,0.550,0.550,53,Controlling-family MBO; 55% 1-day premium; fast close
+JP-TOYOTAIND-2025,6201.T,Toyota Industries,JP,parent_buyout,Toyota group,2025-06-04,2026-03-30,completed,20600,,,299,Initial bid -11% to recent close; raised to 20600. Premium ambiguous vs run-up; excluded from averages
+IN-HEXAWARE-2020,532129.BO,Hexaware Technologies,IN,delisting,Baring PE (~62%),2020-07-10,2020-09-23,completed,475,,0.580,75,RBB delisting; ~67% vs floor 285; ~58% vs undisturbed (approx)
+IN-VEDANTA-2020,500295.BO,Vedanta,IN,delisting,Promoter (Vedanta Resources),2020-10-07,2021-01-11,failed,87.5,,,,Delisting FAILED at floor 87.5; later open offer 235 only 58% subscribed. Early delisting bet = markdown
+IN-LINDE-2018,523457.BO,Linde India,IN,delisting,Linde AG (~75%),2018-11-09,2019-01-25,failed,,,,,Delisting FAILED: discovered price 2025 vs floor 428.5 rejected. Stock +36% in 3d on plan then -20% on failure
