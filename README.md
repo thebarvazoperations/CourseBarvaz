@@ -134,6 +134,36 @@ tell you** is the blended per-dollar-year return, because it only contains
 Establishing a true expectancy needs a live universe tracked over time (below).
 Treat the annualized figures as illustrative only.
 
+## Did the criteria catch the winners? (No — and that matters)
+
+`python -m coursebarvaz.criteria_check` reconstructs each event's
+**pre-announcement** fundamentals, runs them through the *same* `ScanEngine`, and
+asks: would the criteria have flagged this name *before* it paid off — and how
+long did it then take? See [`data/preevent_fundamentals.csv`](data/preevent_fundamentals.csv)
+(values reconstructed via search, confidence-tagged).
+
+The result on 8 reconstructed events is stark: **capture rate 0/6 completed
+deals — the current criteria would have flagged none of them.** Every winner was
+excluded, each for a documented reason:
+
+| Winner | Event paid | Why the criteria missed it |
+|---|---|---|
+| NTT Docomo | +40% | P/B 1.74 (needs < 0.8); net cash too thin |
+| Sony Financial | +26% | P/B 1.65; insurer, ~no net cash |
+| Shinko Electric | +19% | net cash only ~7% of mcap (needs > 50%) |
+| Taisho Pharmaceutical | +55% | deep-value **and** cash-rich — but an **MBO**, no *listed* parent |
+| Toyota Industries | (paid) | net debt from finance ops (needs net cash) |
+| Hexaware | +58% | PE owner at ~62% (needs promoter 72–75%); P/B too high |
+
+**This is the single most important finding.** The Phase-A/B criteria are
+calibrated for a deep-value, cash-box, near-ceiling setup that is *very rare* —
+so while they protect capital superbly (see the safety gate), they also miss the
+overwhelming majority of real events, which happen to normally-valued
+subsidiaries with ordinary balance sheets. The safety/breadth trade-off is now
+measurable, not hypothetical. If the goal is to *catch events* rather than only
+to hold the safest possible names, the thresholds (`config.py`) need loosening —
+and this tool lets you re-run the capture rate as you retune them.
+
 ## Scaling to hundreds of live candidates
 
 The hosted sandbox blocks financial-data feeds, so the live pull is a script you
