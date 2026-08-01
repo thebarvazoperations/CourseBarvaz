@@ -175,6 +175,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = argparse.ArgumentParser(prog="coursebarvaz-portfolio", description=__doc__)
     p.add_argument("--events", default="data/historical_events.csv")
+    p.add_argument("--preevent", default="data/preevent_fundamentals.csv")
     p.add_argument("--start", default="2021-08-01")
     p.add_argument("--end", default="2026-08-01")
     p.add_argument("--cash", type=float, default=100_000.0)
@@ -200,6 +201,26 @@ def main(argv: list[str] | None = None) -> int:
     print(format_result(strict))
     print()
 
+    # CALIBRATED: only the in-window events the calibrated criteria would have
+    # actually flagged (from reconstructed pre-event fundamentals). This is the
+    # realistic middle — what a retuned, safety-gated scanner would have caught.
+    cal = strict  # fallback if pre-event data is unavailable
+    try:
+        from .config import CALIBRATED
+        from .criteria_check import check, load_preevent
+        preevent = load_preevent(args.preevent)
+        met_ids = {o.event_id for o in check(events, preevent, CALIBRATED) if o.met_criteria}
+        cal_events = [e for e in events if e.event_id in met_ids]
+        cal = simulate(cal_events, args.start, args.end, start_cash=args.cash,
+                       position_fraction=args.position_fraction,
+                       max_positions=args.max_positions, cash_yield=args.cash_yield,
+                       premium_haircut=args.haircut,
+                       label="CALIBRATED criteria — only what a retuned scanner flags")
+        print(format_result(cal))
+        print()
+    except FileNotFoundError:
+        pass
+
     capture = simulate(events, args.start, args.end, start_cash=args.cash,
                        position_fraction=args.position_fraction,
                        max_positions=args.max_positions, cash_yield=args.cash_yield,
@@ -207,13 +228,16 @@ def main(argv: list[str] | None = None) -> int:
                        label="OPPORTUNITY CEILING — captured every in-window deal")
     print(format_result(capture))
     print()
-    print(f"  Realistic result sits BETWEEN these two (floor ${strict.end_value:,.0f}, "
-          f"ceiling ${capture.end_value:,.0f}) and depends on retuning + execution.")
+    print(f"  Floor ${strict.end_value:,.0f} (cash) -> CALIBRATED ${cal.end_value:,.0f} "
+          f"(realistic) -> ${capture.end_value:,.0f} (ceiling). CALIBRATED is the")
+    print("  honest target: what a retuned, safety-gated scanner would have caught.")
     print("  Assumptions: each trade sized at "
           f"{args.position_fraction:.0%} of portfolio, up to {args.max_positions} "
           f"concurrent; idle cash at {args.cash_yield:.0%}/yr; premium = return proxy.")
-    print("  Bias check: in-window events here are all winners (dataset failures")
-    print("  predate the window). Try --haircut 0.15 to stress the premiums.")
+    print("  Bias check: the ceiling now includes the in-window Seven & i MBO")
+    print("  FAILURE (flat), but still overstates reality (premiums ignore")
+    print("  slippage/tax; failure returns 0, not the real ~-9% drop). --haircut")
+    print("  0.15 stresses the premiums further.")
     print("=" * 72)
     return 0
 

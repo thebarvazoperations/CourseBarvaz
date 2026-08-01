@@ -33,6 +33,38 @@ class TestCaptureOnRealData:
         assert "Net-cash cushion" in o.failed_gates
 
 
+def test_calibrated_preset_captures_more_than_default():
+    from coursebarvaz.config import CALIBRATED, DEFAULT
+
+    events = load_events(DATA_DIR / "historical_events.csv")
+    pe = load_preevent(DATA_DIR / "preevent_fundamentals.csv")
+    strict_met = sum(o.met_criteria for o in check(events, pe, DEFAULT))
+    cal_met = sum(o.met_criteria for o in check(events, pe, CALIBRATED))
+    assert strict_met == 0
+    assert cal_met > strict_met
+
+
+def test_calibrated_still_vetoes_net_debt_names():
+    # NTT Data and Toyota Industries carry net debt -> safety gate excludes them
+    # even under the loosened calibrated thresholds.
+    from coursebarvaz.config import CALIBRATED
+
+    events = load_events(DATA_DIR / "historical_events.csv")
+    pe = load_preevent(DATA_DIR / "preevent_fundamentals.csv")
+    outs = {o.event_id: o for o in check(events, pe, CALIBRATED)}
+    assert not outs["JP-NTTDATA-2025"].met_criteria
+    assert not outs["JP-TOYOTAIND-2025"].met_criteria
+
+
+def test_sweep_report_runs():
+    from coursebarvaz.criteria_check import sweep_report
+
+    events = load_events(DATA_DIR / "historical_events.csv")
+    pe = load_preevent(DATA_DIR / "preevent_fundamentals.csv")
+    out = sweep_report(events, pe)
+    assert "capture-rate sweep" in out
+
+
 def test_a_qualifying_company_is_reported_as_met():
     # Sanity check the machinery: a genuinely qualifying Japan setup passes.
     from coursebarvaz.backtest import Event

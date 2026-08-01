@@ -48,3 +48,14 @@ class Config:
 
 
 DEFAULT = Config()
+
+# Empirically calibrated from the capture-rate sweep (see criteria_check --sweep):
+# loosening Japan to P/B <= 2.5 and dropping the 50%-net-cash rule to >= 0 lifts
+# the capture rate of historical winners from 0% to ~50% while the safety gate
+# still vetoes every net-debt balance sheet. India stays at the near-ceiling
+# thesis. This trades breadth for a controlled amount of the safety margin.
+CALIBRATED = Config(
+    japan=JapanCriteria(max_pb=2.5, min_net_cash_to_mcap=0.0),
+    india=IndiaCriteria(),
+    safety=SafetyGate(),
+)

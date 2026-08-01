@@ -160,6 +160,43 @@ def format_report(outcomes: list[CriteriaOutcome]) -> str:
     return "\n".join(L)
 
 
+def sweep_report(events: list[Event], preevent: dict[str, PreEventFundamentals]) -> str:
+    """Grid-sweep the Japan gate (max P/B x min net-cash) and show capture rate.
+
+    The safety gate (net-cash-positive, operating profit, no pledge) stays ON
+    throughout, so loosening P/B / net-cash never lets a broken balance sheet
+    through — you can read the knee where breadth rises without buying junk.
+    """
+    from dataclasses import replace
+
+    from .config import DEFAULT
+
+    pbs = [0.8, 1.0, 1.5, 2.0, 2.5, 3.0]
+    ncs = [0.50, 0.25, 0.10, 0.0]
+    jp_completed = [e for e in events
+                    if e.market == "JP" and e.completed and e.event_id in preevent]
+
+    L: list[str] = []
+    L.append("  Japan capture-rate sweep (rows = min net-cash/mcap, cols = max P/B)")
+    L.append(f"  Denominator = {len(jp_completed)} completed JP deals with pre-event data")
+    L.append("           " + "".join(f"P/B<={p:<6}" for p in pbs))
+    for nc in ncs:
+        cells = []
+        for pb in pbs:
+            cfg = replace(DEFAULT, japan=replace(DEFAULT.japan, max_pb=pb, min_net_cash_to_mcap=nc))
+            outs = [o for o in check(events, preevent, cfg)
+                    if o.market == "JP" and o.event_completed]
+            got = sum(o.met_criteria for o in outs)
+            cells.append(f"{got}/{len(outs):<7}")
+        L.append(f"  nc>={nc:<4} " + "".join(cells))
+    L.append("")
+    L.append("  Safety gate stays ON, so net-debt names (Toyota Industries, NTT")
+    L.append("  Data) never qualify no matter how far P/B is loosened. The knee is")
+    L.append("  around P/B<=2.0, net-cash>=0: it catches the profitable, cash-")
+    L.append("  positive subs (Docomo, Sony, Hitachi Transport) and stops there.")
+    return "\n".join(L)
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
@@ -174,10 +211,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--in-max-pb", type=float)
     p.add_argument("--in-min-promoter", type=float)
     p.add_argument("--in-max-promoter", type=float)
+    p.add_argument("--sweep", action="store_true",
+                   help="grid-sweep Japan thresholds and print capture rate for each")
     args = p.parse_args(argv)
 
-    config = _build_config(args)
-    outcomes = check(load_events(args.events), load_preevent(args.preevent), config)
+    events = load_events(args.events)
+    preevent = load_preevent(args.preevent)
+
+    if args.sweep:
+        print(sweep_report(events, preevent))
+        return 0
+
+    outcomes = check(events, preevent, _build_config(args))
     print(format_report(outcomes))
     return 0
 

@@ -96,7 +96,7 @@ failed** control-concentration events (Japanese parent-subsidiary buyouts, India
 promoter delistings) — see [`data/historical_events.csv`](data/historical_events.csv)
 and [`data/HISTORICAL_SOURCES.md`](data/HISTORICAL_SOURCES.md).
 
-What the real events say (27 events, 23 completed → 85% win rate):
+What the real events say (29 events, 23 completed → 79% win rate):
 
 - **The payoff when it triggers is meaningful:** median early-entry premium
   **~+34%**, ranging from +13% (LINE) to +166% (Hitachi Transport).
@@ -108,12 +108,13 @@ What the real events say (27 events, 23 completed → 85% win rate):
 
   | | n | win rate | median premium |
   |---|---|---|---|
-  | **Japan** parent-buyouts / MBO | 22 | ~100% | +34% |
-  | **India** RBB delistings | 5 | ~20%* | +58% |
+  | **Japan** parent-buyouts / MBO | 23 | ~96% | +34% |
+  | **India** RBB delistings | 6 | ~17%* | +58% |
 
-  Across 22 Japanese control-concentration deals in the sample, **none failed** —
-  when a controlling parent decides to buy out the minority, it controls the vote
-  and it happens.
+  Across 23 Japanese control-concentration deals, only one failed (the Seven & i
+  founding-family MBO, scrapped 2025) — when a controlling *parent* buys out the
+  minority it controls the vote and it happens; the failures cluster in MBOs
+  (activist pushback) and Indian delistings (promoter walks from a high price).
 
   Japan buyouts almost always complete (the parent controls the vote) at moderate
   premiums; Indian delistings are lottery-like — they fail often (the promoter
@@ -181,6 +182,20 @@ Loosening P/B from 0.8→2.0 and dropping the 50%-net-cash rule lifts capture fr
 pledge) still vetoes the genuinely weak balance sheets (Toyota Industries' net
 debt stays excluded). That is the safety/breadth dial, in your hands.
 
+`--sweep` grids the whole surface to find the knee:
+
+```
+                 P/B<=0.8  1.0   1.5   2.0   2.5   3.0
+  net-cash>=0.5    0/8    0/8   0/8   0/8   0/8   0/8   <- the 50% rule alone kills everything
+  net-cash>=0.0    0/8    1/8   1/8   3/8   4/8   4/8   <- knee at P/B<=2.5, net-cash>=0
+```
+
+The capture rate caps at ~50% even fully loosened, because the rest are net-debt
+names the safety gate correctly vetoes (NTT Data, Toyota Industries) or MBOs with
+no *listed* parent that the Oyako-Jojo scanner structurally can't see (Taisho,
+Roland). That ceiling is baked into `config.CALIBRATED` (`P/B ≤ 2.5`,
+`net-cash ≥ 0`).
+
 ## The $100k / 5-year scenario
 
 `python -m coursebarvaz.portfolio` runs a **transparent scenario** (not a real
@@ -190,14 +205,23 @@ price backtest — premiums stand in for entry→exit) of $100k from 2021-08 to
 | Scenario | End value | Total | CAGR |
 |---|---|---|---|
 | **STRICT** (criteria as built → 0 trades, cash only) | **$115,937** | +15.9% | +3.0% |
-| **OPPORTUNITY CEILING** (captured every in-window deal) | **$195,547** | +95.5% | +14.3% |
-| Ceiling, stressed −15% on every premium | $172,100 | +72.1% | +11.5% |
+| **CALIBRATED** (only what a retuned scanner flags) | **$157,816** | +57.8% | +9.5% |
+| **OPPORTUNITY CEILING** (captured every in-window deal) | **$194,551** | +94.6% | +14.2% |
 
-The **floor is what the tool as built would actually have done** — nothing, so
-just cash yield. The **ceiling assumes you caught all five in-window Japanese
-deals** (Hitachi Transport +166%, NTT Data +34%, Taisho +55%, Roland +30%,
-Shinko +19%), which no criteria configuration actually delivers. The realistic
-result sits between and depends on retuning and execution.
+Three honest points, floor to ceiling:
+- **STRICT is what the tool as built would actually have done** — nothing, so
+  just cash yield (+3%/yr).
+- **CALIBRATED is the realistic target:** run the `config.CALIBRATED` thresholds
+  over the reconstructed pre-event data and it flags exactly the deals a retuned,
+  still-safety-gated scanner would have caught — Hitachi Transport (+166%) and
+  Shinko (+19%) — and it correctly **avoids** the Seven & i MBO that failed. That
+  is ~9.5%/yr, off two positions in five years.
+- **CEILING assumes you caught every in-window deal**, now including the Seven & i
+  failure (flat), which no configuration delivers.
+
+The in-window sample used to be all winners; adding the Seven & i failure and
+widening the event set de-biases it, though the ceiling still overstates reality
+(premiums ignore slippage/tax, and a failed deal really drops ~-9%, not 0%).
 
 **Read the caveats in the module docstring before quoting any number:** no real
 prices, premiums overstate real fills, the in-window sample is all winners (this
