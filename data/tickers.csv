@@ -1,0 +1,36 @@
+# Seed universe for the deep-value / high-ownership scanner.
+# Financials are approximate snapshots (2025-2026) meant as a working example, NOT investment advice.
+# Verify every figure against a primary source (exchange filing / screener) before acting.
+#
+# Columns:
+#   ticker            exchange symbol
+#   name              company name
+#   country           IN / JP / HK / US / IT / UK ...
+#   exchange          NSE / TSE / HKEX / NYSE / BIT / LSE
+#   insider_pct       promoter / insider / controlling-family ownership, %
+#   market_cap_usd_m  market capitalization, USD millions
+#   price_to_book     P/B ratio (<=0 or blank = unknown)
+#   net_cash_usd_m    cash + equivalents - total debt, USD millions (negative = net debt)
+#   adv_usd           average daily traded value ~90d, USD
+#   thesis            free-text tag
+ticker,name,country,exchange,insider_pct,market_cap_usd_m,price_to_book,net_cash_usd_m,adv_usd,thesis
+STOVEC,Stovec Industries,IN,NSE,71.06,85,4.2,10,60000,india-sub-freefloat
+DISAQ,Disa India,IN,NSE,74.82,260,5.0,40,20000,india-sub-freefloat
+GOODYEAR,Goodyear India,IN,NSE,74.00,120,1.6,50,200000,india-sub-freefloat
+PANAENERG,Panasonic Energy India,IN,NSE,58.10,90,2.0,30,150000,india-sub-freefloat
+WENDT,Wendt India,IN,NSE,37.50,220,6.0,20,80000,india-sub-freefloat
+SWARAJENG,Swaraj Engines,IN,NSE,52.12,450,5.0,60,2000000,india-parent-merger
+NILKAMAL,Nilkamal,IN,NSE,64.33,350,1.8,-40,500000,india-asset-value
+SICALLOG,Sical Logistics,IN,NSE,80.00,100,1.2,-30,3000,india-resolution-plan
+NIHONDENKEI,Nihon Denkei,JP,TSE,12.00,160,0.70,-73,300000,japan-low-pb
+AIZAWA,Aizawa Securities Group,JP,TSE,15.00,400,0.60,0,600000,japan-discount-nav
+CHUBUSTEEL,Chubu Steel Plate,JP,TSE,20.00,300,0.65,100,400000,japan-net-net
+DAIDAN,Dai-Dan,JP,TSE,10.00,700,1.51,83,1500000,japan-net-cash
+KANAMOTO,Kanamoto,JP,TSE,15.00,500,0.55,-200,900000,japan-tangible-discount
+TSUKISHIMA,Tsukishima Holdings,JP,TSE,10.00,750,1.00,225,1200000,japan-reorg
+FUJICORP,Fuji Corporation,JP,TSE,12.00,2000,3.02,300,5000000,japan-fortress-cash
+KANADEN,Kanaden Corporation,JP,TSE,21.21,300,0.70,60,250000,japan-affiliate
+SWIREB,Swire Pacific B,HK,HKEX,55.00,11000,0.30,-500,3000000,global-dual-class-discount
+DDS,Dillard's,US,NYSE,30.00,5000,2.50,200,80000000,global-family-buyback
+TITR,Telecom Italia Savings,IT,BIT,0.00,4000,0.60,-15000,5000000,global-savings-conversion
+FRAS,Frasers Group,UK,LSE,73.04,4200,1.50,-800,20000000,global-insider-buyback
