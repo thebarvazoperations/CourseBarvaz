@@ -1,0 +1,67 @@
+name: Monthly setup snapshot
+
+# Collects the screener's flagged setups FORWARD in time and commits each dated
+# snapshot back to the repo. GitHub-hosted runners have outbound internet, so the
+# yfinance universe pull works here even though the Claude sandbox blocks it.
+#
+# NOTE: scheduled workflows only fire from the repository's DEFAULT branch, so
+# this must be merged to the default branch to run on the cron. Until then, use
+# the "Run workflow" button (workflow_dispatch) to trigger it manually.
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"   # 06:00 UTC on the 1st of each month
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package (+ yfinance)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install yfinance || echo "yfinance install failed; will fall back to committed CSVs"
+
+      - name: Build universe (best-effort) and choose data source
+        id: data
+        run: |
+          set -e
+          DATA="data/real_india.csv data/real_japan.csv"
+          if [ -f data/tickers.txt ]; then
+            OVR=""
+            [ -f data/overrides.csv ] && OVR="--overrides data/overrides.csv"
+            if python scripts/build_universe.py --tickers data/tickers.txt $OVR --out data/universe.csv; then
+              # Use the fresh universe only if it actually has rows beyond the header.
+              if [ "$(wc -l < data/universe.csv)" -gt 1 ]; then
+                DATA="data/universe.csv"
+              fi
+            fi
+          fi
+          echo "data=$DATA" >> "$GITHUB_OUTPUT"
+          echo "Using data: $DATA"
+
+      - name: Scan and record snapshot
+        run: |
+          python -m coursebarvaz --data ${{ steps.data.outputs.data }} --save-snapshot data/snapshots
+
+      - name: Commit snapshot (and refreshed universe) if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/snapshots data/universe.csv 2>/dev/null || git add data/snapshots
+          if git diff --cached --quiet; then
+            echo "No snapshot changes to commit."
+          else
+            git commit -m "chore: monthly setup snapshot $(date -u +%Y-%m-%d)"
+            git push
+          fi

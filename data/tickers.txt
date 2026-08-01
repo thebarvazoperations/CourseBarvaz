@@ -1,0 +1,22 @@
+# Candidate universe for scripts/build_universe.py — one per line:
+#   <yfinance_ticker>  <market: JP|IN>  <name...>
+# This is a SEED. Expand it toward hundreds. yfinance symbols: .T = Tokyo, .NS = NSE.
+# Names taken private (e.g. 6201 Toyota Industries) are intentionally omitted —
+# a forward universe should list currently-listed candidates only.
+
+# --- Japan: listed subsidiaries of listed parents (verify ownership in overrides) ---
+7282.T   JP  Toyoda Gosei
+5016.T   JP  JX Advanced Metals
+3116.T   JP  Toyota Boshoku
+7205.T   JP  Hino Motors
+6902.T   JP  Denso
+5482.T   JP  Aichi Steel
+8015.T   JP  Toyota Tsusho
+
+# --- India: high-promoter / near-ceiling candidates (verify holding in overrides) ---
+SUNTV.NS   IN  Sun TV Network
+WIPRO.NS   IN  Wipro
+HONAUT.NS  IN  Honeywell Automation India
+GILLETTE.NS IN  Gillette India
+CASTROLIND.NS IN  Castrol India
+3MINDIA.NS IN  3M India

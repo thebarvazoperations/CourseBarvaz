@@ -161,6 +161,24 @@ downside — is the strategy's core claim, now measurable. But it is only as rea
 as the snapshot history behind it: **collect snapshots forward, never back-fill,
 to trust the number.**
 
+## Automated forward collection (GitHub Actions)
+
+`.github/workflows/monthly-snapshot.yml` runs on the 1st of each month: it
+refreshes the universe from `data/tickers.txt` + `data/overrides.csv` via
+yfinance (GitHub runners have internet, unlike the Claude sandbox), scans, saves
+a dated snapshot, and commits it back to the repo. If the universe pull fails it
+falls back to the committed `data/real_*.csv`, so it always records *something*.
+
+- Edit `data/tickers.txt` (one `ticker market name` per line) to grow the
+  universe toward hundreds; put verified event fields (promoter %, pledges,
+  parent links) in `data/overrides.csv`.
+- Scheduled workflows fire only from the **default branch**, so merge this branch
+  to enable the cron. Until then use the **Run workflow** button
+  (`workflow_dispatch`).
+
+This is what makes the expectancy number trustworthy over time: the snapshots
+accumulate forward, automatically, without anyone having to remember.
+
 ## Architecture
 
 ```
