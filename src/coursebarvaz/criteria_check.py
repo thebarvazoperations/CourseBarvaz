@@ -91,8 +91,11 @@ class CriteriaOutcome:
     failed_gates: list[str]
 
 
-def check(events: list[Event], preevent: dict[str, PreEventFundamentals]) -> list[CriteriaOutcome]:
-    engine = ScanEngine()
+def check(events: list[Event], preevent: dict[str, PreEventFundamentals],
+          config=None) -> list[CriteriaOutcome]:
+    from .config import DEFAULT
+
+    engine = ScanEngine(config or DEFAULT)
     by_id = {e.event_id: e for e in events}
     outcomes: list[CriteriaOutcome] = []
     for eid, pe in preevent.items():
@@ -165,11 +168,39 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="coursebarvaz-criteria", description=__doc__)
     p.add_argument("--events", default="data/historical_events.csv")
     p.add_argument("--preevent", default="data/preevent_fundamentals.csv")
+    # Calibration knobs — override the gate thresholds to see capture rate move.
+    p.add_argument("--jp-max-pb", type=float)
+    p.add_argument("--jp-min-netcash", type=float)
+    p.add_argument("--in-max-pb", type=float)
+    p.add_argument("--in-min-promoter", type=float)
+    p.add_argument("--in-max-promoter", type=float)
     args = p.parse_args(argv)
 
-    outcomes = check(load_events(args.events), load_preevent(args.preevent))
+    config = _build_config(args)
+    outcomes = check(load_events(args.events), load_preevent(args.preevent), config)
     print(format_report(outcomes))
     return 0
+
+
+def _build_config(args):
+    """Build a Config from CLI overrides, falling back to the defaults."""
+    from dataclasses import replace
+
+    from .config import DEFAULT
+
+    japan = DEFAULT.japan
+    if args.jp_max_pb is not None:
+        japan = replace(japan, max_pb=args.jp_max_pb)
+    if args.jp_min_netcash is not None:
+        japan = replace(japan, min_net_cash_to_mcap=args.jp_min_netcash)
+    india = DEFAULT.india
+    if args.in_max_pb is not None:
+        india = replace(india, max_pb=args.in_max_pb)
+    if args.in_min_promoter is not None:
+        india = replace(india, min_promoter_holding=args.in_min_promoter)
+    if args.in_max_promoter is not None:
+        india = replace(india, max_promoter_holding=args.in_max_promoter)
+    return replace(DEFAULT, japan=japan, india=india)
 
 
 if __name__ == "__main__":  # pragma: no cover

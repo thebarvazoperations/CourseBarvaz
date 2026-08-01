@@ -164,6 +164,46 @@ measurable, not hypothetical. If the goal is to *catch events* rather than only
 to hold the safest possible names, the thresholds (`config.py`) need loosening —
 and this tool lets you re-run the capture rate as you retune them.
 
+## Calibrating the criteria (the feedback loop)
+
+`criteria_check` takes threshold overrides, so you can retune and watch the
+capture rate move:
+
+```bash
+# As built: catches 0 of the reconstructed winners.
+python -m coursebarvaz.criteria_check
+# Loosen Japan (P/B ≤ 2.0, net cash ≥ 0): now catches NTT Docomo + Sony Financial.
+python -m coursebarvaz.criteria_check --jp-max-pb 2.0 --jp-min-netcash 0.0
+```
+
+Loosening P/B from 0.8→2.0 and dropping the 50%-net-cash rule lifts capture from
+**0% → 33%** while the safety gate (net-cash-positive, operating profit, no
+pledge) still vetoes the genuinely weak balance sheets (Toyota Industries' net
+debt stays excluded). That is the safety/breadth dial, in your hands.
+
+## The $100k / 5-year scenario
+
+`python -m coursebarvaz.portfolio` runs a **transparent scenario** (not a real
+price backtest — premiums stand in for entry→exit) of $100k from 2021-08 to
+2026-08, and deliberately brackets the honest range:
+
+| Scenario | End value | Total | CAGR |
+|---|---|---|---|
+| **STRICT** (criteria as built → 0 trades, cash only) | **$115,937** | +15.9% | +3.0% |
+| **OPPORTUNITY CEILING** (captured every in-window deal) | **$195,547** | +95.5% | +14.3% |
+| Ceiling, stressed −15% on every premium | $172,100 | +72.1% | +11.5% |
+
+The **floor is what the tool as built would actually have done** — nothing, so
+just cash yield. The **ceiling assumes you caught all five in-window Japanese
+deals** (Hitachi Transport +166%, NTT Data +34%, Taisho +55%, Roland +30%,
+Shinko +19%), which no criteria configuration actually delivers. The realistic
+result sits between and depends on retuning and execution.
+
+**Read the caveats in the module docstring before quoting any number:** no real
+prices, premiums overstate real fills, the in-window sample is all winners (this
+dataset's failures predate 2021), and position-sizing/redeployment assumptions
+drive much of the ceiling. It is a scenario, not a track record.
+
 ## Scaling to hundreds of live candidates
 
 The hosted sandbox blocks financial-data feeds, so the live pull is a script you
