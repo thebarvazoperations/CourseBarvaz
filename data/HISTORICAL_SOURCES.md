@@ -25,6 +25,12 @@ number (vs the pre-speculation price), `premium_1d` is the news-day premium.
 | **Hitachi Kokusai** (6756), KKR/JIP (Hitachi ~52%) | ¥2,503 | — / **62.5%** | ~7 mo | completed | 62.46% premium to 12-mo average (Business Wire / KKR, 2017) |
 | **PanaHome** (1924), Panasonic (~54%) | ¥1,200 | 16.4% / 16.4% | ~3 mo | completed | 16.4% premium; Panasonic bought out housing subsidiary (Yahoo/Reuters, 2016–17) |
 | **Nichii Gakkan** (9792), Bain (founder-backed) | ¥1,500 | 37% / 37% | ~3 mo | completed | 37% vs 2020-05-07; later sweetened vs Effissimo (DealStreetAsia / AVCJ, 2020) |
+| **Descente** (8114), Itochu (largest holder ~30%) | ¥2,800 | 50% / 50% | ~1.5 mo | completed | 50% vs ¥1,871; rare hostile TOB, Itochu to ~40% (Bloomberg / Japan Times, 2019) |
+| **ZOZO** (3092), Yahoo/Z Holdings (SoftBank) | ¥2,620 | 21% / 21% | ~2 mo | completed | 20.96% vs ¥2,166; Yahoo took control 50.1% from founder (SoftBank, 2019) |
+| **Alpine Electronics** (6787), Alps Electric (~40%) | share swap | 29.4% / 29.4% | ~17 mo | completed | ~29.4% premium; parent absorbed listed affiliate 0.68 ratio (Alps Alpine, eff. 2019-01-01) |
+| **NEC NESIC** (1973), NEC (parent) | ¥3,300 | — | ~2 mo | completed | Parent take-private, raised ¥3,250→¥3,300 (NEC, 2024–25). Premium not cleanly sourced; excluded from averages |
+| **Hitachi High-Tech** (8036), Hitachi (52%→full) | ¥8,000 | — | ~2 mo | completed | Hitachi bought remaining 48% (Hitachi, 2020). Premium not cleanly sourced; excluded from averages |
+| **NTT Urban Development** (8933), NTT (parent) | — | — | ~1.5 mo | completed | NTT took unit wholly owned, delisted (Nikkei / JPX, 2018). Premium not cleanly sourced; excluded from averages |
 
 **Prominent deals deliberately EXCLUDED** (to keep the dataset thesis-pure — a
 pre-existing *controlling* parent/promoter buying out minorities): JSR/JIC and
