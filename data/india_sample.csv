@@ -1,0 +1,7 @@
+ticker,name,market,market_cap,book_value,cash_and_equivalents,total_debt,net_income,operating_income,has_listed_parent,parent_ticker,parent_ownership_pct,promoter_holding_pct,pledged_shares_pct
+AAA.NS,Promoter Creep Ltd (illustrative),IN,5000,2500,900,300,420,560,false,,,0.735,0
+BBB.NS,Near Ceiling Ltd (illustrative),IN,8000,4000,1500,200,650,800,false,,,0.748,0
+CCC.NS,Room To Buy Ltd (illustrative),IN,6000,3000,1000,400,500,620,false,,,0.680,0
+DDD.NS,Pledged Promoter Ltd (illustrative),IN,4500,2200,800,300,300,410,false,,,0.742,0.15
+EEE.NS,Overvalued Ceiling Ltd (illustrative),IN,20000,4000,1200,300,700,900,false,,,0.731,0
+FFF.NS,Indebted Ceiling Ltd (illustrative),IN,5500,2600,400,2000,350,480,false,,,0.739,0

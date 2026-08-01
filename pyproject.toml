@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coursebarvaz"
+version = "0.1.0"
+description = "Early-positioning scanner for control-concentrated equities (Japan Oyako Jojo / India SEBI 75%)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+yfinance = ["yfinance>=0.2"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+coursebarvaz = "coursebarvaz.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

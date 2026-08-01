@@ -1,0 +1,4 @@
+# Core package has zero runtime dependencies (standard library only).
+# Optional extras:
+#   pip install -e ".[yfinance]"   # live market data for the yfinance provider
+#   pip install -e ".[dev]"        # pytest for the test suite
