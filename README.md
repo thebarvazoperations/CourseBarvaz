@@ -96,19 +96,19 @@ failed** control-concentration events (Japanese parent-subsidiary buyouts, India
 promoter delistings) — see [`data/historical_events.csv`](data/historical_events.csv)
 and [`data/HISTORICAL_SOURCES.md`](data/HISTORICAL_SOURCES.md).
 
-What the real events say (16 events, 12 completed → 75% win rate):
+What the real events say (21 events, 17 completed → 81% win rate):
 
 - **The payoff when it triggers is meaningful:** median early-entry premium
-  **~+37%** (mean ~+36%), ranging from +13% (LINE) to +166% (Hitachi Transport).
+  **~+34%**, ranging from +13% (LINE) to +166% (Hitachi Transport).
 - **Entering early is a real edge:** on deals reporting both premiums, early
-  positioners captured **+36%** vs **+28%** for news-day buyers. The cleanest
-  case is Hitachi Metals: **15.1%** on the news vs **74.5%** for someone
-  positioned before the speculation.
+  positioners captured **+34%** vs **+29%** for news-day buyers — and in the
+  standout cases the gap is huge (Hitachi Metals: **15.1%** on the news vs
+  **74.5%** for someone positioned before the speculation).
 - **The two markets are structurally different** — the most important finding:
 
   | | n | win rate | median premium |
   |---|---|---|---|
-  | **Japan** parent-buyouts / MBO | 11 | ~100% | +34% |
+  | **Japan** parent-buyouts / MBO | 16 | ~100% | +34% |
   | **India** RBB delistings | 5 | ~20%* | +58% |
 
   Japan buyouts almost always complete (the parent controls the vote) at moderate

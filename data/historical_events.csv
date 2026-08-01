@@ -10,6 +10,11 @@ JP-NTTDATA-2025,9613.T,NTT Data Group,JP,parent_buyout,NTT (57.73%),2025-05-08,2
 JP-LINE-2020,3938.T,LINE Corporation,JP,parent_buyout,SoftBank/Naver JV,2020-08-03,2021-02-28,completed,5200,0.130,0.130,209,13% premium before news; Yahoo Japan/LINE integration
 JP-ROLANDDG-2024,6789.T,Roland DG,JP,mbo,Taiyo Pacific Partners,2023-12-19,2024-03-27,completed,5035,0.300,0.300,99,~30% premium vs 2023-09-09 close; large existing holder took it private
 JP-BENEFIT1-2024,2412.T,Benefit One,JP,parent_buyout,Dai-ichi Life (Pasona 51.16%),2023-11-08,2024-03-11,completed,2173,,,124,Bid war M3 vs Dai-ichi (1600 -> 2173). Premium vs undisturbed not cleanly sourced; excluded from averages
+JP-FAMILYMART-2020,8028.T,FamilyMart,JP,parent_buyout,Itochu (~50%),2020-07-08,2020-08-25,completed,2300,0.310,0.310,48,31% premium; Tokyo court later ruled fair value 2600 (minorities won appraisal)
+JP-HITCHEM-2019,4217.T,Hitachi Chemical,JP,parent_buyout,Showa Denko (Hitachi 51%),2019-12-18,2020-04-28,completed,4630,0.340,0.340,132,34% premium vs 2019-11-25; Hitachi group unwind ~8.8B USD
+JP-HKOKUSAI-2017,6756.T,Hitachi Kokusai Electric,JP,parent_buyout,KKR/JIP (Hitachi ~52%),2017-04-26,2017-12-09,completed,2503,,0.625,227,62.46% premium to 12-month average; Hitachi subsidiary
+JP-PANAHOME-2016,1924.T,PanaHome,JP,parent_buyout,Panasonic (~54%),2016-11-25,2017-02-28,completed,1200,0.164,0.164,95,16.4% premium; Panasonic bought out housing subsidiary. Dates approximate
+JP-NICHII-2020,9792.T,Nichii Gakkan,JP,mbo,Bain (founder-backed),2020-05-08,2020-08-17,completed,1500,0.370,0.370,101,37% premium vs 2020-05-07; Bain take-private (initial bid; later sweetened)
 IN-HEXAWARE-2020,532129.BO,Hexaware Technologies,IN,delisting,Baring PE (~62%),2020-07-10,2020-09-23,completed,475,,0.580,75,RBB delisting; ~67% vs floor 285; ~58% vs undisturbed (approx)
 IN-VEDANTA-2020,500295.BO,Vedanta,IN,delisting,Promoter (Vedanta Resources),2020-10-07,2021-01-11,failed,87.5,,,,Delisting FAILED at floor 87.5; later open offer 235 only 58% subscribed
 IN-LINDE-2018,523457.BO,Linde India,IN,delisting,Linde AG (~75%),2018-11-09,2019-01-25,failed,,,,,Delisting FAILED: discovered 2025 vs floor 428.5 rejected. Stock +36% in 3d then -20%

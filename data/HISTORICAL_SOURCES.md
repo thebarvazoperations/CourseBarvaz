@@ -20,6 +20,17 @@ number (vs the pre-speculation price), `premium_1d` is the news-day premium.
 | **LINE Corp** (3938), SoftBank/Naver JV | ¥5,200 | 13% / 13% | ~7 mo | completed | 13% premium before news; Yahoo Japan/LINE integration (SoftBank, 2020) |
 | **Roland DG** (6789), Taiyo Pacific Partners | ¥5,035 | 30% / 30% | ~3 mo | completed | ~30% vs 2023-09-09 close; large holder took it private (World Imaging News, 2024) |
 | **Benefit One** (2412), Dai-ichi (Pasona 51.16%) | ¥2,173 | — / *bid war* | ~4 mo | completed | Bid war M3 vs Dai-ichi 1,600→2,173 (Bloomberg / Japan Times, 2024). Excluded from premium averages |
+| **FamilyMart** (8028), Itochu (~50%) | ¥2,300 | 31% / 31% | ~1.5 mo | completed | 31% premium; court later ruled fair value ¥2,600 — minorities won appraisal (Japan Times / Bloomberg, 2020) |
+| **Hitachi Chemical** (4217), Showa Denko (Hitachi 51%) | ¥4,630 | 34% / 34% | ~4 mo | completed | 34% vs 2019-11-25; Hitachi group unwind, ~$8.8B (Bloomberg, 2019) |
+| **Hitachi Kokusai** (6756), KKR/JIP (Hitachi ~52%) | ¥2,503 | — / **62.5%** | ~7 mo | completed | 62.46% premium to 12-mo average (Business Wire / KKR, 2017) |
+| **PanaHome** (1924), Panasonic (~54%) | ¥1,200 | 16.4% / 16.4% | ~3 mo | completed | 16.4% premium; Panasonic bought out housing subsidiary (Yahoo/Reuters, 2016–17) |
+| **Nichii Gakkan** (9792), Bain (founder-backed) | ¥1,500 | 37% / 37% | ~3 mo | completed | 37% vs 2020-05-07; later sweetened vs Effissimo (DealStreetAsia / AVCJ, 2020) |
+
+**Prominent deals deliberately EXCLUDED** (to keep the dataset thesis-pure — a
+pre-existing *controlling* parent/promoter buying out minorities): JSR/JIC and
+Toshiba/JIP (government-fund / PE take-privates, no controlling parent), Ci:z/J&J
+and Tokyo Dome/Mitsui Fudosan (ordinary acquisitions, no prior control), and
+Pioneer/Baring (a distressed *take-under* below market, not a premium event).
 
 ## India — promoter delisting / open offer near the 75% ceiling
 
