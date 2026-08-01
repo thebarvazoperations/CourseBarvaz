@@ -15,8 +15,15 @@ liquidity gate. This design exists because the two theses do not overlap:
          dispersed / cross-held ownership and would be wrongly excluded by an
          insider-ownership filter.
 
+  Track C - Structural discount
+      A dual-class / savings / preferred line trading below the ordinary share,
+      or a holding company trading below NAV. Keyed off `discount_pct`.
+      -> Does NOT require a small cap: these situations (Swire B, Exor, HAL,
+         Korean prefs, Italian savings shares) are usually LARGE caps, so the
+         value-track market-cap ceiling would wrongly delete them.
+
 A single `insider >= 70% AND P/B <= 0.7 AND ...` AND-chain collapses to almost
-nothing because it demands both theses at once. Keeping the tracks separate is
+nothing because it demands every thesis at once. Keeping the tracks separate is
 the whole point.
 
 Usage:
@@ -49,7 +56,10 @@ PB_MAX = 0.70                     # price-to-book ceiling
 NETCASH_RATIO_MIN = 0.50          # (net cash / market cap) floor
 MCAP_MAX_VALUE_USD_M = 2000.0     # value names can be larger than micro-caps
 
-# Shared liquidity gate (applied to BOTH tracks)
+# Track C: structural discount (dual-class / holdco-NAV / savings-preferred)
+DISCOUNT_MIN_PCT = 25.0          # min discount to ordinary / to NAV; no mcap cap
+
+# Shared liquidity gate (applied to ALL tracks)
 ADV_MIN_USD = 5000.0             # min ~90d average daily traded value
 
 
@@ -68,6 +78,7 @@ class Stock:
     price_to_book: float          # <= 0 means unknown
     net_cash_usd_m: float
     adv_usd: float
+    discount_pct: float = 0.0     # structural discount to ordinary / to NAV
     thesis: str = ""
 
     @property
@@ -124,6 +135,7 @@ def load_universe(path: Path) -> list[Stock]:
                     price_to_book=_to_float(row["price_to_book"], default=-1.0),
                     net_cash_usd_m=_to_float(row["net_cash_usd_m"]),
                     adv_usd=_to_float(row["adv_usd"]),
+                    discount_pct=_to_float(row.get("discount_pct", "")),
                     thesis=(row.get("thesis") or "").strip(),
                 )
             )
@@ -178,6 +190,14 @@ def screen(stock: Stock) -> Verdict:
     if b_ok:
         verdict.tracks.append("B:value")
 
+    # --- Track C: structural discount (no market-cap ceiling) ---
+    if stock.discount_pct >= DISCOUNT_MIN_PCT:
+        verdict.tracks.append("C:discount")
+    else:
+        verdict.reasons.append(
+            f"[C] discount {stock.discount_pct:.0f}% < {DISCOUNT_MIN_PCT:.0f}%"
+        )
+
     return verdict
 
 
@@ -199,15 +219,17 @@ def print_report(verdicts: list[Verdict], verbose: bool) -> None:
     print(f"SHORTLIST ({len(passed)})")
     print("=" * 78)
     if passed:
-        header = f"{'Ticker':<12}{'Name':<26}{'Cty':<4}{'Ins%':>6}{'Mcap$M':>9}{'P/B':>6}  Tracks"
+        header = (f"{'Ticker':<12}{'Name':<26}{'Cty':<4}{'Ins%':>6}"
+                  f"{'Mcap$M':>9}{'P/B':>6}{'Disc%':>7}  Tracks")
         print(header)
-        print("-" * 78)
+        print("-" * 90)
         for v in sorted(passed, key=lambda x: (-len(x.tracks), x.stock.ticker)):
             s = v.stock
             pb = f"{s.price_to_book:.2f}" if s.has_pb else "n/a"
+            disc = f"{s.discount_pct:.0f}" if s.discount_pct else "-"
             print(
                 f"{s.ticker:<12}{s.name[:25]:<26}{s.country:<4}"
-                f"{s.insider_pct:>6.1f}{s.market_cap_usd_m:>9,.0f}{pb:>6}  "
+                f"{s.insider_pct:>6.1f}{s.market_cap_usd_m:>9,.0f}{pb:>6}{disc:>7}  "
                 + ", ".join(v.tracks)
             )
     else:
@@ -231,7 +253,7 @@ def write_shortlist(verdicts: list[Verdict], path: Path) -> None:
         writer.writerow(
             ["ticker", "name", "country", "exchange", "insider_pct",
              "market_cap_usd_m", "price_to_book", "net_cash_ratio",
-             "adv_usd", "tracks", "thesis"]
+             "adv_usd", "discount_pct", "tracks", "thesis"]
         )
         for v in passed:
             s = v.stock
@@ -239,7 +261,7 @@ def write_shortlist(verdicts: list[Verdict], path: Path) -> None:
                 [s.ticker, s.name, s.country, s.exchange, s.insider_pct,
                  s.market_cap_usd_m,
                  s.price_to_book if s.has_pb else "",
-                 round(s.net_cash_ratio, 3), s.adv_usd,
+                 round(s.net_cash_ratio, 3), s.adv_usd, s.discount_pct,
                  "|".join(v.tracks), s.thesis]
             )
     print(f"Shortlist written to {path} ({len(passed)} names)")
