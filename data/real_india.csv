@@ -1,0 +1,4 @@
+ticker,name,market,market_cap,book_value,cash_and_equivalents,total_debt,net_income,operating_income,has_listed_parent,parent_ticker,parent_ownership_pct,promoter_holding_pct,pledged_shares_pct
+SUNTV.NS,Sun TV Network,IN,20291,11662,6100,30,1900,2400,false,,,0.7500,0
+WIPRO.NS,Wipro,IN,181892,55624,54324,20291,12600,15000,false,,,0.7262,0
+HONAUT.NS,Honeywell Automation India,IN,34984,4468,3130,0,500,650,false,,,0.7500,0

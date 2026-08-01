@@ -49,6 +49,32 @@ python -m coursebarvaz --data data/*.csv --json
 Results are ranked by a risk/reward score (deeper discount + fatter cash
 cushion for Japan; closer to the 75% ceiling + cheaper entry for India).
 
+## Real seed dataset
+
+`data/real_india.csv` and `data/real_japan.csv` hold a small, **hand-verified**
+set of real companies (collected Aug 2026). Every figure is documented with its
+source, date, and a confidence tag in [`data/SOURCES.md`](data/SOURCES.md) —
+nothing is invented; unverifiable magnitudes are tagged `Approx`.
+[`data/events_validation.md`](data/events_validation.md) records real *completed*
+events in these categories (e.g. Toyota Industries `6201` taken private and
+delisted Jun 2026) as evidence the mechanism is real.
+
+```bash
+python -m coursebarvaz --data data/real_india.csv data/real_japan.csv --show-rejected
+```
+
+What the real data shows today: **Sun TV Network** qualifies (promoter parked at
+the 75% ceiling, zero pledge, huge net cash, P/B 1.74). **Wipro** and
+**Honeywell Automation India** are in-band on ownership but fail the valuation
+gate, and **Toyoda Gosei** — a genuine Toyota subsidiary trading *below book*
+(P/B 0.97) — still misses the strict Phase-A bar (needs P/B < 0.8 **and** net
+cash > 50% of market cap). The takeaway: the criteria are demanding, and real
+qualifiers are rare — which is the point of a discipline. Thresholds live in
+`config.py` if you want to relax them.
+
+> This is a **seed**, not a backtest. Refresh against primary filings (BSE/NSE,
+> EDINET, company IR) before acting, and see the disclaimer below.
+
 ## Bring your own data
 
 The scanner is provider-agnostic. The default `CsvProvider` reads a CSV whose

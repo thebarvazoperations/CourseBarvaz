@@ -1,0 +1,2 @@
+ticker,name,market,market_cap,book_value,cash_and_equivalents,total_debt,net_income,operating_income,has_listed_parent,parent_ticker,parent_ownership_pct,promoter_holding_pct,pledged_shares_pct
+7282.T,Toyoda Gosei,JP,545.224,562.1,148.74,112.4,36.3,40.0,true,7203.T,0.44,,0
