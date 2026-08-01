@@ -96,24 +96,39 @@ failed** control-concentration events (Japanese parent-subsidiary buyouts, India
 promoter delistings) — see [`data/historical_events.csv`](data/historical_events.csv)
 and [`data/HISTORICAL_SOURCES.md`](data/HISTORICAL_SOURCES.md).
 
-What the real events say (9 events, 7 completed → 78% win rate):
+What the real events say (16 events, 12 completed → 75% win rate):
 
-- **The payoff when it triggers is large:** median early-entry premium **~+57%**.
-- **Entering early is the whole edge:** on deals reporting both premiums, early
-  positioners captured **+47%** vs **+31%** for news-day buyers — a **+16pp**
-  edge. The cleanest case is Hitachi Metals: **15.1%** on the news vs **74.5%**
-  for someone positioned before the speculation.
-- **But it's slow and uncertain:** holding-to-close ranged from ~2 months
-  (Taisho) to ~15–18 months (Shinko, Hitachi Metals), and real deals fail
-  (Vedanta, Linde delistings both collapsed).
+- **The payoff when it triggers is meaningful:** median early-entry premium
+  **~+37%** (mean ~+36%), ranging from +13% (LINE) to +166% (Hitachi Transport).
+- **Entering early is a real edge:** on deals reporting both premiums, early
+  positioners captured **+36%** vs **+28%** for news-day buyers. The cleanest
+  case is Hitachi Metals: **15.1%** on the news vs **74.5%** for someone
+  positioned before the speculation.
+- **The two markets are structurally different** — the most important finding:
+
+  | | n | win rate | median premium |
+  |---|---|---|---|
+  | **Japan** parent-buyouts / MBO | 11 | ~100% | +34% |
+  | **India** RBB delistings | 5 | ~20%* | +58% |
+
+  Japan buyouts almost always complete (the parent controls the vote) at moderate
+  premiums; Indian delistings are lottery-like — they fail often (the promoter
+  walks from a high discovered price: Linde, INEOS, Elantas all collapsed) but
+  pay big when they land. *SEBI's broad 2015–18 data puts the true India success
+  rate at ~53% with a ~125% median premium; my small sample over-weights the
+  (newsworthy) failures.
+
+- **It's slow and uncertain:** holding-to-close ran from ~1.5 months (NTT Data)
+  to ~18 months (Hitachi Metals).
 
 **Honest verdict:** the mechanism is real and the early-positioning premium is
-large and repeatable *when an event occurs* — and getting in early clearly beats
-reacting to the announcement. **What this backtest cannot tell you** is the
-blended per-dollar-year return, because it only contains *announced* deals — it
-omits the setups that never triggered (dead money). Establishing a true
-expectancy needs a live universe tracked over time (below). Treat the annualized
-figures as illustrative only.
+large and repeatable *when an event occurs* — getting in early clearly beats
+reacting to the announcement, and Japan parent-buyouts are the higher-probability
+leg while India is the higher-payoff, lower-odds leg. **What this backtest cannot
+tell you** is the blended per-dollar-year return, because it only contains
+*announced* deals — it omits the setups that never triggered (dead money).
+Establishing a true expectancy needs a live universe tracked over time (below).
+Treat the annualized figures as illustrative only.
 
 ## Scaling to hundreds of live candidates
 

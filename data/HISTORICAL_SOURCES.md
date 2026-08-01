@@ -15,6 +15,11 @@ number (vs the pre-speculation price), `premium_1d` is the news-day premium.
 | **Shinko Electric** (6967), JIC (Fujitsu 50.02%) | ¥5,920 | 13.0% / 18.9% | ~15 mo | completed | 13% 1-day, 18.9% undisturbed 31-May-23; long regulatory delay (MLex / JIC) |
 | **Taisho Pharma** (4581), Uehara-family MBO | ¥8,620 | 55% / 55% | ~2 mo | completed | 55% announce-day premium, ¥710B (Bloomberg / Nikkei, 2023) |
 | **Toyota Industries** (6201), Toyota group | ¥20,600 | — / *ambiguous* | ~10 mo | completed | Initial ¥16,300 = −11% to close, raised to ¥20,600; delisted Jun-2026 (CNBC). Excluded from premium averages |
+| **Sony Financial** (8729), parent Sony | ¥2,600 | 26% / 26% | ~3 mo | completed | ¥2,600 vs ¥2,064; 26% premium, ~$3.7B (Cleary Gottlieb / Insurance Journal, 2020) |
+| **NTT Data** (9613), NTT (57.73%) | ¥4,000 | 33.7% / 33.7% | ~1.5 mo | completed | 33.7% vs ¥2,991.5; ~¥2.37T; then two-thirds squeeze-out (NTT / Manalo Advisors, 2025) |
+| **LINE Corp** (3938), SoftBank/Naver JV | ¥5,200 | 13% / 13% | ~7 mo | completed | 13% premium before news; Yahoo Japan/LINE integration (SoftBank, 2020) |
+| **Roland DG** (6789), Taiyo Pacific Partners | ¥5,035 | 30% / 30% | ~3 mo | completed | ~30% vs 2023-09-09 close; large holder took it private (World Imaging News, 2024) |
+| **Benefit One** (2412), Dai-ichi (Pasona 51.16%) | ¥2,173 | — / *bid war* | ~4 mo | completed | Bid war M3 vs Dai-ichi 1,600→2,173 (Bloomberg / Japan Times, 2024). Excluded from premium averages |
 
 ## India — promoter delisting / open offer near the 75% ceiling
 
@@ -23,6 +28,15 @@ number (vs the pre-speculation price), `premium_1d` is the news-day premium.
 | **Hexaware** (532129), Baring (~62%) | ₹475 | ~58% (vs undisturbed) / 67% vs floor ₹285 | ~2.5 mo | completed | RBB delisting accepted ₹475 (Business Standard, 2020) |
 | **Vedanta** (500295), promoter | ₹87.5 floor | — | — | **failed** | Delisting failed; later open offer ₹235 only 58% subscribed (Business Standard, 2020–21) |
 | **Linde India** (523457), Linde AG (~75%) | — | — | — | **failed** | Discovered ₹2,025 vs floor ₹428.5 rejected; +36% in 3d on plan, −20% on failure (Business Standard / Capitalmind, 2018–19) |
+| **INEOS Styrolution** (506222), INEOS (~75%) | — | — | — | **failed** | Promoter rejected discovered ₹1,100; stock −20% (Business Standard / Indian Chemical News, 2020) |
+| **Elantas Beck** (500123), Altana (~75%) | — | — | — | **failed** | RBB ₹600 vs offer ₹330; too few of 11.45% non-promoter tendered (Business Standard). Dates approximate |
+
+### India aggregate cross-check (SEBI)
+A SEBI study of RBB delistings **2015–2018** found **53% succeeded**, at a **median
+premium of ~125%**. This corroborates the shape my small sample shows — Indian
+delistings are lottery-like: a coin-flip on completion, but a very large premium
+when they land. My hand-picked sample (n=5, 20% success) over-weights failures
+(they were newsworthy); treat the true India hit rate as ~50%, not 20%.
 
 ## Method & honest caveats
 - `captured_return` = `premium_early` if present, else `premium_1d`. `annualized`

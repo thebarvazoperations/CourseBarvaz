@@ -5,6 +5,13 @@ JP-HTRANSPORT-2022,9086.T,Hitachi Transport System,JP,parent_buyout,KKR (Hitachi
 JP-SHINKO-2023,6967.T,Shinko Electric Industries,JP,parent_buyout,JIC consortium (Fujitsu 50.02%),2023-12-12,2025-03-18,completed,5920,0.130,0.189,462,Long regulatory delay (~15 months); modest premium
 JP-TAISHO-2023,4581.T,Taisho Pharmaceutical,JP,mbo,Uehara family MBO,2023-11-24,2024-01-16,completed,8620,0.550,0.550,53,Controlling-family MBO; 55% 1-day premium; fast close
 JP-TOYOTAIND-2025,6201.T,Toyota Industries,JP,parent_buyout,Toyota group,2025-06-04,2026-03-30,completed,20600,,,299,Initial bid -11% to recent close; raised to 20600. Premium ambiguous vs run-up; excluded from averages
+JP-SONYFH-2020,8729.T,Sony Financial Holdings,JP,parent_buyout,Sony (parent),2020-05-19,2020-08-04,completed,2600,0.260,0.260,77,Sony took financial unit private; 26% premium (2600 vs 2064)
+JP-NTTDATA-2025,9613.T,NTT Data Group,JP,parent_buyout,NTT (57.73%),2025-05-08,2025-06-20,completed,4000,0.337,0.337,43,33.7% premium vs 2991.5 close; NTT to two-thirds then squeeze-out
+JP-LINE-2020,3938.T,LINE Corporation,JP,parent_buyout,SoftBank/Naver JV,2020-08-03,2021-02-28,completed,5200,0.130,0.130,209,13% premium before news; Yahoo Japan/LINE integration
+JP-ROLANDDG-2024,6789.T,Roland DG,JP,mbo,Taiyo Pacific Partners,2023-12-19,2024-03-27,completed,5035,0.300,0.300,99,~30% premium vs 2023-09-09 close; large existing holder took it private
+JP-BENEFIT1-2024,2412.T,Benefit One,JP,parent_buyout,Dai-ichi Life (Pasona 51.16%),2023-11-08,2024-03-11,completed,2173,,,124,Bid war M3 vs Dai-ichi (1600 -> 2173). Premium vs undisturbed not cleanly sourced; excluded from averages
 IN-HEXAWARE-2020,532129.BO,Hexaware Technologies,IN,delisting,Baring PE (~62%),2020-07-10,2020-09-23,completed,475,,0.580,75,RBB delisting; ~67% vs floor 285; ~58% vs undisturbed (approx)
-IN-VEDANTA-2020,500295.BO,Vedanta,IN,delisting,Promoter (Vedanta Resources),2020-10-07,2021-01-11,failed,87.5,,,,Delisting FAILED at floor 87.5; later open offer 235 only 58% subscribed. Early delisting bet = markdown
-IN-LINDE-2018,523457.BO,Linde India,IN,delisting,Linde AG (~75%),2018-11-09,2019-01-25,failed,,,,,Delisting FAILED: discovered price 2025 vs floor 428.5 rejected. Stock +36% in 3d on plan then -20% on failure
+IN-VEDANTA-2020,500295.BO,Vedanta,IN,delisting,Promoter (Vedanta Resources),2020-10-07,2021-01-11,failed,87.5,,,,Delisting FAILED at floor 87.5; later open offer 235 only 58% subscribed
+IN-LINDE-2018,523457.BO,Linde India,IN,delisting,Linde AG (~75%),2018-11-09,2019-01-25,failed,,,,,Delisting FAILED: discovered 2025 vs floor 428.5 rejected. Stock +36% in 3d then -20%
+IN-INEOS-2020,506222.BO,INEOS Styrolution India,IN,delisting,INEOS (~75%),2020-07-17,2020-07-24,failed,,,,,Delisting FAILED: promoter rejected discovered price 1100; stock -20%
+IN-ELANTAS-2018,500123.BO,Elantas Beck India,IN,delisting,Altana (promoter ~75%),2018-11-01,2019-02-01,failed,,,,,Delisting FAILED: RBB 600 vs offer 330; too few of 11.45% non-promoter tendered. Dates approximate

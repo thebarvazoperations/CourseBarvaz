@@ -157,6 +157,29 @@ def _pct(x: Optional[float]) -> str:
     return f"{x:+.1%}" if x is not None else "n/a"
 
 
+def _group_line(label: str, events: list[Event]) -> str:
+    """One-line summary for a subset: win rate + median captured return."""
+    completed = [e for e in events if e.completed]
+    wins = len(completed) / len(events) if events else 0.0
+    rets = [e.captured_return for e in completed if e.captured_return is not None]
+    med = _median(rets) if rets else None  # type: ignore[arg-type]
+    return (f"    {label:<16} n={len(events):<3} win={wins:>3.0%}  "
+            f"median premium={_pct(med)}")
+
+
+def breakdown_lines(rep: BacktestReport) -> list[str]:
+    by_market: dict[str, list[Event]] = {}
+    by_category: dict[str, list[Event]] = {}
+    for e in rep.events:
+        by_market.setdefault(e.market, []).append(e)
+        by_category.setdefault(e.category, []).append(e)
+    lines = ["  By market:"]
+    lines += [_group_line(m, evs) for m, evs in sorted(by_market.items())]
+    lines.append("  By category:")
+    lines += [_group_line(c, evs) for c, evs in sorted(by_category.items())]
+    return lines
+
+
 def format_report(rep: BacktestReport) -> str:
     lines: list[str] = []
     lines.append("=" * 68)
@@ -186,6 +209,13 @@ def format_report(rep: BacktestReport) -> str:
                  f"{rep.mean_holding_days:.0f} days" if rep.mean_holding_days else "    mean holding: n/a")
     lines.append(f"    median annualized          : {_pct(rep.median_annualized)}  "
                  f"(illustrative only — single events don't redeploy)")
+    lines.append("")
+    lines += breakdown_lines(rep)
+    lines.append("")
+    lines.append("  Structural read: Japan parent-buyouts complete at a high rate")
+    lines.append("  (the parent controls the vote) at moderate premiums; Indian RBB")
+    lines.append("  delistings fail often (promoter walks from a high discovered price)")
+    lines.append("  but pay big when they land (SEBI 2015-18: 53% success, ~125% median).")
     lines.append("")
     lines.append("  CAVEAT: conditional on an event occurring. Selection-biased")
     lines.append("  (announced deals only) and missing the denominator of setups")
