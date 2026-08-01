@@ -132,6 +132,35 @@ python -m coursebarvaz --data data/universe.csv --show-rejected
 Run it periodically and archive each snapshot: that stream of flagged setups is
 exactly the denominator the backtest is missing.
 
+## Blended expectancy — closing the denominator
+
+The tracking layer turns the conditional backtest into a real per-setup number.
+Record every scan as a dated snapshot, then join the accumulated setups against
+realized events:
+
+```bash
+# 1) record what the screener flags, on a schedule (builds the history):
+python -m coursebarvaz --data data/universe.csv --save-snapshot data/snapshots
+
+# 2) months/years later, compute the blended expectancy incl. the misses:
+python -m coursebarvaz.expectancy --snapshots data/snapshots --events data/historical_events.csv
+```
+
+For each setup (first flagged on date D) the engine looks for an event on the
+same ticker within a horizon (default 3y): a completed deal pays its early-entry
+return, a failed deal pays `--fail-return`, and a setup that never triggers is a
+**miss** paying `--miss-return` (default 0%). The blended mean across *all*
+setups — winners and dead money — is the number that actually tells you if the
+strategy pays per dollar deployed.
+
+The bundled `data/snapshots/2021-01-15.json` is an **illustrative back-fill** (so
+the pipeline shows hits *and* misses): 6 setups, 50% hit rate, +86.5% mean on
+winners → **+43.2% blended per setup over 3 years (~+13%/yr)** even assuming 0%
+on every miss. That asymmetry — modest hit rate, huge winners, protected
+downside — is the strategy's core claim, now measurable. But it is only as real
+as the snapshot history behind it: **collect snapshots forward, never back-fill,
+to trust the number.**
+
 ## Architecture
 
 ```

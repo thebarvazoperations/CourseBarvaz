@@ -68,6 +68,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--market", choices=[m.value for m in Market], help="restrict to one market")
     parser.add_argument("--show-rejected", action="store_true", help="also list filtered-out names")
     parser.add_argument("--json", action="store_true", help="emit JSON instead of a table")
+    parser.add_argument("--save-snapshot", metavar="DIR",
+                        help="also record qualified setups as a dated snapshot under DIR "
+                             "(builds the history the expectancy engine needs)")
     args = parser.parse_args(argv)
 
     provider = CsvProvider(*args.data)
@@ -75,6 +78,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     engine = ScanEngine()
 
     results = engine.scan(provider, market=market, include_rejected=args.show_rejected)
+
+    if args.save_snapshot:
+        from .tracking import Snapshot, SnapshotStore
+        path = SnapshotStore(args.save_snapshot).save(Snapshot.from_results(results))
+        print(f"# snapshot saved: {path}", file=sys.stderr)
 
     if args.json:
         json.dump([_result_to_dict(r) for r in results], sys.stdout, indent=2, ensure_ascii=False)
