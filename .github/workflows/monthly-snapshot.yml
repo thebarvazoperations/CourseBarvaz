@@ -1,0 +1,84 @@
+name: Monthly snapshot + real-price returns
+
+# Two jobs in one monthly run, both needing the live price feed the Claude
+# sandbox blocks but GitHub-hosted runners have:
+#   1) collect the screener's flagged setups FORWARD in time (a dated snapshot);
+#   2) recompute the historical events' entry->exit returns from REAL prices and
+#      emit a patched events file the backtest/portfolio tools consume.
+# Both are committed back to the repo.
+#
+# NOTE: scheduled workflows only fire from the repository's DEFAULT branch, so
+# this must be merged to the default branch to run on the cron. Until then, use
+# the "Run workflow" button (workflow_dispatch) to trigger it manually.
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"   # 06:00 UTC on the 1st of each month
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package (+ yfinance)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install yfinance || echo "yfinance install failed; will fall back to committed CSVs"
+
+      - name: Build universe (best-effort) and choose data source
+        id: data
+        run: |
+          set -e
+          DATA="data/real_india.csv data/real_japan.csv"
+          if [ -f data/tickers.txt ]; then
+            OVR=""
+            [ -f data/overrides.csv ] && OVR="--overrides data/overrides.csv"
+            if python scripts/build_universe.py --tickers data/tickers.txt $OVR --out data/universe.csv; then
+              # Use the fresh universe only if it actually has rows beyond the header.
+              if [ "$(wc -l < data/universe.csv)" -gt 1 ]; then
+                DATA="data/universe.csv"
+              fi
+            fi
+          fi
+          echo "data=$DATA" >> "$GITHUB_OUTPUT"
+          echo "Using data: $DATA"
+
+      - name: Scan and record snapshot
+        run: |
+          python -m coursebarvaz --data ${{ steps.data.outputs.data }} --save-snapshot data/snapshots
+
+      - name: Refresh real-price returns (best-effort)
+        run: |
+          # Recompute real entry->exit returns for the historical events from live
+          # prices, and emit a patched events file the analysis tools can consume.
+          # Best-effort: delisted tickers have no history and are reported 'missing'.
+          python scripts/compute_real_returns.py \
+            --events data/historical_events.csv \
+            --out data/historical_returns.csv \
+            --patch-out data/historical_events_realprices.csv \
+          || echo "real-return refresh skipped (yfinance unavailable)"
+
+      - name: Commit refreshed data if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Add whatever exists; ignore paths that weren't produced this run.
+          for f in data/snapshots data/universe.csv data/historical_returns.csv data/historical_events_realprices.csv; do
+            git add "$f" 2>/dev/null || true
+          done
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: monthly snapshot + real-price returns $(date -u +%Y-%m-%d)"
+            git push
+          fi

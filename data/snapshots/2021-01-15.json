@@ -1,0 +1,12 @@
+{
+  "as_of": "2021-01-15",
+  "note": "ILLUSTRATIVE / BACK-FILLED for demonstration only. Real expectancy requires snapshots collected FORWARD in time, not reconstructed after the fact. Tickers here mix names that later got an event (Hitachi Metals, Hitachi Transport, Shinko) with names that did not (Toyoda Gosei and two placeholders) so the pipeline shows hits AND dead money.",
+  "setups": [
+    {"ticker": "5486.T", "name": "Hitachi Metals", "market": "JP", "scanner": "japan-oyako-jojo", "score": 68.0},
+    {"ticker": "9086.T", "name": "Hitachi Transport System", "market": "JP", "scanner": "japan-oyako-jojo", "score": 64.0},
+    {"ticker": "6967.T", "name": "Shinko Electric Industries", "market": "JP", "scanner": "japan-oyako-jojo", "score": 55.0},
+    {"ticker": "7282.T", "name": "Toyoda Gosei", "market": "JP", "scanner": "japan-oyako-jojo", "score": 40.0},
+    {"ticker": "DEMO1.T", "name": "No-Event Example A", "market": "JP", "scanner": "japan-oyako-jojo", "score": 52.0},
+    {"ticker": "DEMO2.T", "name": "No-Event Example B", "market": "JP", "scanner": "japan-oyako-jojo", "score": 48.0}
+  ]
+}

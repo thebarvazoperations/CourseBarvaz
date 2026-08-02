@@ -1,0 +1,13 @@
+event_id,name,market,market_cap,book_value,cash_and_equivalents,total_debt,net_income,operating_income,has_listed_parent,parent_ticker,parent_ownership_pct,promoter_holding_pct,pledged_shares_pct,asof,confidence,note
+JP-DOCOMO-2020,NTT Docomo,JP,100,57.5,8,0,6,8,true,9432.T,0.66,,0,2020-06-30,med,P/B 1.74 SOURCED (Jun-2020); net cash ratio approx
+JP-SONYFH-2020,Sony Financial Holdings,JP,100,60.6,3,3,5,6,true,6758.T,0.65,,0,2020-05,med,P/B 1.65 SOURCED; insurer net cash ~0
+JP-SHINKO-2023,Shinko Electric Industries,JP,800,320,83.14,30,40,50,true,6702.T,0.50,,0,2023-Q3,med,net cash 53.14B on ~800B mcap = 6.6% SOURCED; P/B ~2.5 approx
+JP-TAISHO-2023,Taisho Pharmaceutical,JP,460,657,450,20,20,25,false,,,,0,2023-11,low,Below book + cash-rich SOURCED qualitatively; magnitudes approx; MBO (no listed parent)
+JP-TOYOTAIND-2025,Toyota Industries,JP,100,143,15,25,8,10,true,7203.T,0.24,,0,2025-04,low,P/B ~0.7 approx; holds securities but net debt from finance ops (approx)
+IN-HEXAWARE-2020,Hexaware Technologies,IN,100,25,15,2,8,10,false,,,0.62,0,2020-06,med,Promoter Baring ~62% SOURCED; P/B ~4 approx
+IN-VEDANTA-2020,Vedanta,IN,100,110,20,60,5,8,false,,,0.505,0,2020-09,med,Promoter ~50% known; net-debt metals co; magnitudes approx
+IN-LINDE-2018,Linde India,IN,100,20,5,2,3,4,false,,,0.75,0,2018-11,med,Promoter ~75% known (MEETS band); industrial-gas P/B ~5 approx
+JP-NTTDATA-2025,NTT Data Group,JP,100,42.5,15,35,5,7,true,9432.T,0.5773,,0,2024-12,med,P/B 2.35 SOURCED (Dec-2024); IT services net debt (approx)
+JP-HTRANSPORT-2022,Hitachi Transport System,JP,100,111,20,15,6,8,true,6501.T,0.40,,0,2021-06,low,Depressed pre-deal (166% premium to 12mo avg); P/B ~0.9 and small net cash approx
+JP-ROLANDDG-2024,Roland DG,JP,100,55,25,5,5,7,false,,,,0,2023-09,low,PE take-private (Taiyo Pacific, not a listed parent); P/B ~1.8, net cash ~20% approx
+IN-ADANIPOWER-2020,Adani Power,IN,100,110,10,200,5,8,false,,,0.75,0,2020-05,med,Promoter ~75% (MEETS band); heavily indebted power co (net debt) -> safety veto
