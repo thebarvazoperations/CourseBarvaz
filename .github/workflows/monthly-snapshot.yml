@@ -1,8 +1,11 @@
-name: Monthly setup snapshot
+name: Monthly snapshot + real-price returns
 
-# Collects the screener's flagged setups FORWARD in time and commits each dated
-# snapshot back to the repo. GitHub-hosted runners have outbound internet, so the
-# yfinance universe pull works here even though the Claude sandbox blocks it.
+# Two jobs in one monthly run, both needing the live price feed the Claude
+# sandbox blocks but GitHub-hosted runners have:
+#   1) collect the screener's flagged setups FORWARD in time (a dated snapshot);
+#   2) recompute the historical events' entry->exit returns from REAL prices and
+#      emit a patched events file the backtest/portfolio tools consume.
+# Both are committed back to the repo.
 #
 # NOTE: scheduled workflows only fire from the repository's DEFAULT branch, so
 # this must be merged to the default branch to run on the cron. Until then, use
@@ -54,14 +57,28 @@ jobs:
         run: |
           python -m coursebarvaz --data ${{ steps.data.outputs.data }} --save-snapshot data/snapshots
 
-      - name: Commit snapshot (and refreshed universe) if changed
+      - name: Refresh real-price returns (best-effort)
+        run: |
+          # Recompute real entry->exit returns for the historical events from live
+          # prices, and emit a patched events file the analysis tools can consume.
+          # Best-effort: delisted tickers have no history and are reported 'missing'.
+          python scripts/compute_real_returns.py \
+            --events data/historical_events.csv \
+            --out data/historical_returns.csv \
+            --patch-out data/historical_events_realprices.csv \
+          || echo "real-return refresh skipped (yfinance unavailable)"
+
+      - name: Commit refreshed data if changed
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/snapshots data/universe.csv 2>/dev/null || git add data/snapshots
+          # Add whatever exists; ignore paths that weren't produced this run.
+          for f in data/snapshots data/universe.csv data/historical_returns.csv data/historical_events_realprices.csv; do
+            git add "$f" 2>/dev/null || true
+          done
           if git diff --cached --quiet; then
-            echo "No snapshot changes to commit."
+            echo "No changes to commit."
           else
-            git commit -m "chore: monthly setup snapshot $(date -u +%Y-%m-%d)"
+            git commit -m "chore: monthly snapshot + real-price returns $(date -u +%Y-%m-%d)"
             git push
           fi
