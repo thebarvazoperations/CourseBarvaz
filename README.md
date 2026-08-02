@@ -228,6 +228,35 @@ prices, premiums overstate real fills, the in-window sample is all winners (this
 dataset's failures predate 2021), and position-sizing/redeployment assumptions
 drive much of the ceiling. It is a scenario, not a track record.
 
+## From premiums to real prices
+
+Every figure above uses each event's reported **premium** as the return proxy.
+[`scripts/compute_real_returns.py`](scripts/compute_real_returns.py) replaces
+that with the **actual entry→exit return from real daily closes** (yfinance, so
+run it on your own machine — the sandbox blocks the feed):
+
+```bash
+pip install yfinance
+python scripts/compute_real_returns.py --events data/historical_events.csv \
+    --out data/historical_returns.csv \
+    --patch-out data/historical_events_realprices.csv
+# then run the SAME tools on real prices — no code changes:
+python -m coursebarvaz.backtest  --events data/historical_events_realprices.csv
+python -m coursebarvaz.portfolio --events data/historical_events_realprices.csv
+```
+
+For each event it prices an **early** entry (~90 days before the announcement —
+the strategy's real claim) and a **news-day** entry (1 day before), and an exit
+at the resolution date, then writes real returns back over the premium columns so
+the backtest, expectancy, and portfolio tools consume them unchanged.
+
+Honest coverage caveat, built into the output: many event tickers are **already
+delisted** (NTT Docomo, Hitachi Metals, Taisho, Toyota Industries…), and
+yfinance has no history for a delisted symbol — those rows come back `missing`,
+not guessed. Expect partial coverage and keep the reported premium (or a
+delisted-history source) for the rest. This is the last mile from *scenario* to
+*measured*, and it runs where the data actually lives.
+
 ## Scaling to hundreds of live candidates
 
 The hosted sandbox blocks financial-data feeds, so the live pull is a script you
